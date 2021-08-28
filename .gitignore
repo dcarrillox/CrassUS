@@ -1,0 +1,10 @@
+borrar*
+data/
+logs/*
+results/
+container/*
+!container/container.def
+!container/container.yml
+*ipynb
+!dev_notes.ipynb
+
