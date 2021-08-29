@@ -7,4 +7,4 @@ container/*
 !container/container.yml
 *ipynb
 !dev_notes.ipynb
-
+crassus_genomes.txt
