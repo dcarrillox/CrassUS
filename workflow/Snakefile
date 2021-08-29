@@ -1,303 +1,20 @@
-configfile: "config/config.yaml"
-report: "report/workflow.rst"
+include: "rules/common.smk"
 
 
-import pandas as pd
-from snakemake.utils import validate
-from snakemake.utils import min_version
-import glob, os
-
-sample_sheet = pd.read_table(config["samples"]).set_index("sample_id", drop=False)
-print(sample_sheet)
-print(sample_sheet.shape)
-
-
-# check if there are fastq samples in the input
-in_fastq = False
-if "fastq" in sample_sheet["type"].values:
-    in_fastq = True
-
-# check if there are assemblies in the input
-in_assembly = False
-if "assembly" in sample_sheet["type"].values:
-    in_assembly = True
-
-wildcard_constraints:
-    sample="|".join(sample_sheet.index),
-    sample_transeq="|".join(sample_sheet.index)
-
-
-
-def get_fastq(wildcards):
-    """Get fastq files of given sample."""
-    fastqs = sample_sheet.loc[(wildcards.sample), ["file1", "file2"]].dropna()
-    if len(fastqs) == 2:
-        return {"r1": fastqs.file1, "r2": fastqs.file2}
-    return {"r1": fastqs.file1}
-
-def is_single_end(sample):
-    """Return True if sample is single end."""
-    return pd.isnull(sample_sheet.loc[(sample), "file2"])
-
-def get_trimmed_reads(wildcards):
-    """Get trimmed reads of given sample."""
-    if not is_single_end(wildcards.sample):
-        # paired-end sample
-        return expand(
-            "results/trimmed/{sample}_{group}.fastq",
-            sample=wildcards.sample,
-            group=["R1", "R2"])
-
-    return [f"results/trimmed/{wildcards.sample}.fastq"]
-
-def get_final_reads(wildcards):
-    # pre-processing True
-    if config["fastq_processing"]:
-        if not is_single_end(wildcards.sample):
-            a= expand("results/trimmed/{sample}_{group}.fastq",
-            sample=wildcards.sample, group=["R1", "R2"])
-            print(a)
-            return a
-
-        b = [f"results/trimmed/{wildcards.sample}.fastq"]
-        print(b)
-        return b
-
-    # pre-processing False
-    fastqs = sample_sheet.loc[(wildcards.sample), ["file1", "file2"]].dropna().tolist()
-    print(fastqs)
-    return fastqs
-
-def get_raw_assemblies(wildcards):
-    if sample_sheet["type"][wildcards.sample] == "fastq":
-        return "results/1_assembly/0_raw/{sample}/contigs.fasta"
-    else:
-        return sample_sheet["file1"][wildcards.sample]
-
-def get_20k_assemblies(wildcards):
-    return checkpoints.filter_assemblies.get(sample=wildcards.sample).output
-
-def format_spades_input(wildcards):
-    # pre-processing True
-    if config["fastq_processing"]:
-        if not is_single_end(wildcards.sample):
-            a= f"--meta -1 results/trimmed/{wildcards.sample}_R1.fastq -2 results/trimmed/{wildcards.sample}_R2.fastq"
-            print(a)
-            return a
-
-        b = f"-s results/trimmed/{wildcards.sample}.fastq"
-        print(b)
-        return b
-
-    # pre-processing False
-    if not is_single_end(wildcards.sample):
-        a= f"--meta -1 {sample_sheet['file1'][wildcards.sample]} -2 {sample_sheet['file2'][wildcards.sample]}"
-        print(a)
-        return a
-
-    b = f"-s {sample_sheet['file1'][wildcards.sample]}"
-    print(b)
-    return b
-
-
-
-def aggregate_best_codings(wildcards):
-    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    best_codings = expand(
-                        "results/5_prodigal/best_coding/{best_coding}.{ext}",
-                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
-                        ext=["faa", "gff"]
-                        )
-    return best_codings
-
-
-################################# "results/1_assembly/2_six_frames/{sample}.faa"
 rule all:
     input:
         #"results/2_profiles_scan/matching_contigs.txt",
         "results/4_test/merged.txt",
         aggregate_best_codings,
         "results/5_prodigal/coding_summary.txt",
-        "results/6_clustering/clustering.tsv",
-        "results/6_clustering/shared_content_matrix.txt"
+        #"results/6_clustering/clustering.tsv",
+        #"results/6_clustering/shared_content_matrix.txt"
 
 
-if config["fastq_processing"]:
-    rule qc_fastq:
-        input: "results/qc/multiqc_trim.html",
-
-#################################
-
-# fastq files as input
-if in_fastq:
-    # if preprocessing
-    if config["fastq_processing"]:
-
-        rule fastqc:
-            input:
-                unpack(get_fastq),
-            output:
-                html="results/qc/{sample}.html",
-                zip="results/qc/{sample}_fastqc.zip",
-            log:
-                "logs/fastqc/{sample}.log",
-            wrapper:
-                "0.74.0/bio/fastqc"
-
-        rule multiqc:
-            input:
-                expand(["results/qc/{sample}_fastqc.zip"],
-                        sample=sample_sheet[sample_sheet['type']=="fastq"]["sample_id"])
-            output:
-                report(
-                    "results/qc/multiqc.html",
-                    caption="../report/multiqc.rst",
-                    category="Quality control",
-                ),
-            log:
-                "logs/multiqc.log",
-            wrapper:
-                "0.74.0/bio/multiqc"
-
-        rule trim_reads_se:
-            input:
-                unpack(get_fastq),
-            output:
-                "results/trimmed/{sample}.fastq",
-            params:
-                **config["params"]["trimmomatic"]["se"],
-                extra="",
-            log:
-                "logs/trimmomatic/{sample}.log",
-            wrapper:
-                "0.74.0/bio/trimmomatic/se"
-
-        rule trim_reads_pe:
-            input:
-                unpack(get_fastq),
-            output:
-                r1="results/trimmed/{sample}_R1.fastq",
-                r2="results/trimmed/{sample}_R2.fastq",
-                r1_unpaired=temp("results/trimmed/{sample}_R1.unpaired.fastq"),
-                r2_unpaired=temp("results/trimmed/{sample}_R2.unpaired.fastq"),
-                trimlog="results/trimmed/{sample}.trimlog.txt",
-            params:
-                **config["params"]["trimmomatic"]["pe"],
-                extra=lambda w, output: "-trimlog {}".format(output.trimlog),
-                #extra=""
-            log:
-                "logs/trimmomatic/{sample}.log",
-            wrapper:
-                "0.74.0/bio/trimmomatic/pe"
-
-        rule fastqc_trim:
-            input:
-                unpack(get_trimmed_reads)
-            output:
-                html="results/qc/{sample}_trim.html",
-                zip="results/qc/{sample}_trim_fastqc.zip",
-            log:
-                "logs/fastqc/{sample}_trim.log",
-            wrapper:
-                "0.74.0/bio/fastqc"
-
-        rule multiqc_trim:
-            input:
-                expand(["results/qc/{sample}_trim_fastqc.zip"],
-                        sample=sample_sheet[sample_sheet['type']=="fastq"]["sample_id"])
-            output:
-                report(
-                    "results/qc/multiqc_trim.html",
-                    caption="../report/multiqc.rst",
-                    category="Quality control",
-                ),
-            log:
-                "logs/multiqc_trim.log",
-            wrapper:
-                "0.74.0/bio/multiqc"
-
-    # run assembly
-    rule spades_assembly:
-        input:
-            get_final_reads
-        output:
-            "results/1_assembly/0_raw/{sample}/contigs.fasta"
-        threads:
-            2
-        params:
-            outdir = "results/1_assembly/0_raw/{sample}",
-            input_reads = lambda wildcards: format_spades_input(wildcards)
-        log:
-            "logs/spades/{sample}.log"
-        shell:
-            "spades.py -t {threads} -o {params.outdir} "
-            "{params.input_reads} &>{log}"
-
-rule filter_rehead_assemblies:
-    input:
-        get_raw_assemblies
-    output:
-        fasta = "results/1_assembly/1_scaff20k/{sample}.fasta",
-        table = "results/1_assembly/1_scaff20k/{sample}.table"
-    script:
-        "../scripts/filter_rehead_assemblies.py"
-
-rule transeq:
-    input:
-        "results/1_assembly/1_scaff20k/{sample}.fasta"
-    output:
-        "results/1_assembly/2_six_frames/{sample}.faa",
-    shell:
-        '''
-        size=$(stat --printf="%s" {input})
-        if [[ $size -eq 0 ]]
-        then
-            touch {output}
-        else
-            transeq -frame 6 -table 11 -clean -sequence {input} -outseq {output}
-        fi
-        '''
-
-rule hmmsearch:
-    input:
-        "results/1_assembly/2_six_frames/{sample}.faa"
-    output:
-        txt = "results/2_profiles_scan/{sample}.hmmtxt",
-        dom = "results/2_profiles_scan/{sample}.domtxt"
-    container: "library://dcarrillo/default/crasscontainer:0.1"
-    threads: 3
-    shell:
-        '''
-        size=$(stat --printf="%s" {input})
-        if [[ $size -eq 0 ]]
-        then
-            touch {output}
-        else
-            hmmsearch --cpu {threads} -o {output.txt} --domtblout {output.dom} --noali --notextw --acc /data/profiles/crass_conserved_genes.hmm {input}
-        fi
-        '''
-
-rule parse_hmmsearch:
-    input:
-        expand("results/2_profiles_scan/{sample}.hmmtxt", sample=sample_sheet.index)
-    output:
-        hits_table = "results/2_profiles_scan/profiles_hits.txt",
-        contigs    = "results/2_profiles_scan/matching_contigs.txt"
-    script:
-        "../scripts/parse_hmmsearch.py"
-
-
-checkpoint get_matching_contigs:
-    input:
-        "results/2_profiles_scan/matching_contigs.txt"
-    output:
-        directory("results/3_contigs/0_contigs")
-    params:
-        assemblies_dir = "results/1_assembly/1_scaff20k",
-        contigs_dir =    "results/3_contigs/0_contigs/"
-    script:
-        "../scripts/get_matching_contigs.py"
-
+include: "rules/fastq_qc.smk"
+include: "rules/assembly.smk"
+include: "rules/scan_contigs.smk"
+include: "rules/open_reading_frames.smk"
 
 rule blastn:
     input:
@@ -305,7 +22,7 @@ rule blastn:
     output:
         "results/5_blast/{contig}.blast"
     threads: 4
-    container: "library://dcarrillo/default/crasscontainer:0.1"
+    container: "library://dcarrillo/default/crassus:0.1"
     shell:
         "blastn -num_threads {threads} -dust no -soft_masking false "
         "-db /data/genomes/all_genomes -out {output} -query {input} "
@@ -318,11 +35,11 @@ rule fastani:
     output:
         "results/6_fastani/{contig}.fastani"
     threads: 2
-    container: "library://dcarrillo/default/crasscontainer:0.1"
+    container: "library://dcarrillo/default/crassus:0.1"
     log:
         "results/6_fastani/{contig}.log"
     shell:
-        "./fastANI -q {input} --rl /data/genomes/genomes_reflist.txt -k 13 --fragLen 1000 "
+        "/software/fastANI -q {input} --rl /data/genomes/genomes_reflist.txt -k 13 --fragLen 1000 "
         "--minFraction 0.1 -t {threads} -o {output} &> {log}"
 
 checkpoint pyani:
@@ -335,7 +52,7 @@ checkpoint pyani:
     params:
         outdir = "results/7_pyani/{contig}",
         tmp = directory("results/7_pyani/{contig}_tmp")
-    container: "library://dcarrillo/default/crasscontainer:0.1"
+    container: "library://dcarrillo/default/crassus:0.1"
     threads: 4
     log:
         "results/7_pyani/{contig}/{contig}.log"
@@ -349,86 +66,13 @@ checkpoint pyani:
 
 
 
-def aggregate_pyani(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-
-
-prodigal_ext = ["prod-11.gff", "prod-11.faa",
-                "prod-TGA.gff", "prod-TGA.faa",
-                "prod-TAG.gff", "prod-TAG.faa"]
-rule prodigal:
-    input:
-        "results/3_contigs/0_contigs/{contig}.fasta",
-    output:
-        gff = "results/5_prodigal/all_codings/{contig}_prod-11.gff",
-        faa = "results/5_prodigal/all_codings/{contig}_prod-11.faa",
-        tga_gff = "results/5_prodigal/all_codings/{contig}_prod-TGA.gff",
-        tga_faa = "results/5_prodigal/all_codings/{contig}_prod-TGA.faa",
-        tag_gff = "results/5_prodigal/all_codings/{contig}_prod-TAG.gff",
-        tag_faa = "results/5_prodigal/all_codings/{contig}_prod-TAG.faa",
-    container: "library://dcarrillo/default/crasscontainer:0.1"
-    threads: 1
-    log:
-        log = "results/5_prodigal/all_codings/{contig}_prod-11.log",
-        tga_log = "results/5_prodigal/all_codings/{contig}_prod-TGA.log",
-        tag_log = "results/5_prodigal/all_codings/{contig}_prod-TAG.log",
-    shell:
-        "/software/prodigal -g 11 -f gff -a {output.faa} -o {output.gff} -i {input} &> {log.log} ; "
-        "/software/prodigal -g 11 -TGA W -f gff -a {output.tga_faa} -o {output.tga_gff} -i {input} &> {log.tga_log} ; "
-        "/software/prodigal -g 11 -TAG Q -f gff -a {output.tag_faa} -o {output.tag_gff} -i {input} &> {log.tag_log} "
-
-
-def aggregate_densities(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    prodigal_files = expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
-                      contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                      prod_ext=prodigal_ext
-                      )
-    return prodigal_files
-
-
-rule coding_density:
-    input:
-        # expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
-        #         contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
-        #         prod_ext=prodigal_ext
-        #       )
-        aggregate_densities
-    output:
-        "results/5_prodigal/coding_summary.txt"
-    params:
-        faa_dir = "results/5_prodigal/all_codings"
-    script:
-        "../scripts/summarize_coding_density.py"
-
-
-checkpoint pick_best_coding:
-    input:
-        "results/5_prodigal/coding_summary.txt"
-    output:
-        directory("results/5_prodigal/best_coding")
-    params:
-        raw_dir = "results/5_prodigal/all_codings"
-    script:
-        "../scripts/pick_best_coding.py"
-
-
-def get_prots_files(wildcards):
-    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    prots_files = expand("results/5_prodigal/best_coding/{prots}.faa",
-                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
-                      )
-    return prots_files
-
-
-
 rule proteins_clustering:
     input:
         get_prots_files
     output:
         tmp = temp(directory("results/6_clustering/tmp")),
         tsv = "results/6_clustering/clustering.tsv"
-    container: "library://dcarrillo/default/crasscontainer:0.1"
+    container: "library://dcarrillo/default/crassus:0.1"
     params:
         prots_faa = "results/6_clustering/db/all_proteins.faa",
         prots_db  = "results/6_clustering/db/all_proteins",
@@ -449,7 +93,6 @@ rule proteins_clustering:
             {output.tsv} >> {log.tsv} ;
         """
 
-
 rule calculate_shared_prots:
     input:
         prots_files = get_prots_files,
@@ -463,27 +106,6 @@ rule calculate_shared_prots:
         "../scripts/calculate_shared_content.py"
 
 
-
-def aggregate_contigs(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    blast    = expand("results/5_blast/{contig}.blast",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-    prodigal = expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
-                      contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                      prod_ext=prodigal_ext
-                      )
-    fastani =  expand("results/6_fastani/{contig}.fastani",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-
-    pyani = expand("results/7_pyani/{contig}/.done",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-    #print(blast, prodigal)
-    return prodigal + pyani
-    #return prodigal + fastani
-
 rule merge_test:
     input:
         aggregate_contigs
@@ -493,8 +115,6 @@ rule merge_test:
         """
         ls {input} > {output}
         """
-
-
 
 
 #######
@@ -516,6 +136,8 @@ NOP, it is not editable enough. I need to color the ORFs for instance.
 #   1) Using only the type strains terminases (~280), MAFFT should be quick with this,
 #      we already did this in CoCalc COOIII.
 #   2) Using all the classified contigs (~860), not sure how quick MAFFT would be
+#      After my meeting with Bas (26/08/2021), I go with this option not only for the
+#      TerL tree but for the whole reference of genomes and proteins.
 
 
 ########
@@ -546,9 +168,9 @@ $ mamba create -c conda-forge -c bioconda -n container blast=2.11 biopython=1.77
 $ conda env export --name container > container.yml
 
 2) Write definition file and build
-$ sudo singularity build container.sif container.def
+$ sudo /home/dani/miniconda3/bin/singularity build container.sif container.def
 
 3) upload to the library
 $ singularity sign container.sif  #singul1243
-$ singularity push container.sif library://dcarrillo/default/crasscontainer:0.1
+$ singularity push container.sif library://dcarrillo/default/crassus:0.1
 '''

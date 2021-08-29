@@ -8,3 +8,5 @@ container/*
 *ipynb
 !dev_notes.ipynb
 crassus_genomes.txt
+.snakemake
+.cache/
