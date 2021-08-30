@@ -1,7 +1,10 @@
 sample_id	type	file1	file2
 A	fastq	data/SRR7110448_1.fastq	data/SRR7110448_2.fastq
-B	fastq	data/ERR2088994.fastq
-C	assembly	data/my_contig.fasta
+B	fastq	data/ERR2088994.fastq	
+C	assembly	data/my_contig.fasta	
 D	fastq	data/SRR7110449_1.fastq	data/SRR7110449_2.fastq
-E	fastq	data/ERR2088995.fastq
-F	assembly	data/SRR12557734_20k-300k.fasta
+E	fastq	data/ERR2088995.fastq	
+F	assembly	data/SRR12557734_20k-300k.fasta	
+J	assembly	data/mock_genomes_2.fasta	
+Z	assembly	data/mock_genomes_1.fasta	
+K	assembly	data/OAWB01000083.fasta	

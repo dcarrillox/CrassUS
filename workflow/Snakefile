@@ -4,17 +4,19 @@ include: "rules/common.smk"
 rule all:
     input:
         #"results/2_profiles_scan/matching_contigs.txt",
-        "results/4_test/merged.txt",
+        "results/merged.txt",
         aggregate_best_codings,
-        "results/5_prodigal/coding_summary.txt",
+        "results/4_prodigal/coding_summary.txt",
         #"results/6_clustering/clustering.tsv",
         #"results/6_clustering/shared_content_matrix.txt"
+        "results/6_terl_tree/terl_tree.nwk"
 
 
 include: "rules/fastq_qc.smk"
 include: "rules/assembly.smk"
 include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
+include: "rules/terl_tree.smk"
 
 rule blastn:
     input:
@@ -110,7 +112,7 @@ rule merge_test:
     input:
         aggregate_contigs
     output:
-        "results/4_test/merged.txt"
+        "results/merged.txt"
     shell:
         """
         ls {input} > {output}

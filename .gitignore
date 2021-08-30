@@ -10,3 +10,5 @@ container/*
 crassus_genomes.txt
 .snakemake
 .cache/
+test.txt
+config/.*

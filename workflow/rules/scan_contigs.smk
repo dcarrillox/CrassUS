@@ -14,14 +14,14 @@ rule transeq:
         fi
         '''
 
-rule hmmsearch:
+rule hmmsearch_six_frames:
     input:
         "results/1_assembly/2_six_frames/{sample}.faa"
     output:
         txt = "results/2_profiles_scan/{sample}.hmmtxt",
         dom = "results/2_profiles_scan/{sample}.domtxt"
     container: "library://dcarrillo/default/crassus:0.1"
-    threads: 3
+    threads: 2
     shell:
         '''
         size=$(stat --printf="%s" {input})
@@ -33,7 +33,7 @@ rule hmmsearch:
         fi
         '''
 
-rule parse_hmmsearch:
+rule parse_hmmsearch_six_frames:
     input:
         expand("results/2_profiles_scan/{sample}.hmmtxt", sample=sample_sheet.index)
     output:

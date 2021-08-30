@@ -99,7 +99,7 @@ def format_spades_input(wildcards):
 def aggregate_best_codings(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
     best_codings = expand(
-                        "results/5_prodigal/best_coding/{best_coding}.{ext}",
+                        "results/4_prodigal/best_coding/{best_coding}.{ext}",
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         ext=["faa", "gff"]
                         )
@@ -110,7 +110,7 @@ def aggregate_pyani(wildcards):
 
 def aggregate_densities(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    prodigal_files = expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
+    prodigal_files = expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
                       contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                       prod_ext=prodigal_ext
                       )
@@ -118,17 +118,24 @@ def aggregate_densities(wildcards):
 
 def get_prots_files(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    prots_files = expand("results/5_prodigal/best_coding/{prots}.faa",
+    prots_files = expand("results/4_prodigal/best_coding/{prots}.faa",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
     return prots_files
+
+def get_terl_faa_files(wildcards):
+    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
+    terl_faa_files = expand("results/6_terl_tree/terl_scan/{prots}_TerL.faa",
+                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
+                      )
+    return terl_faa_files
 
 def aggregate_contigs(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
     blast    = expand("results/5_blast/{contig}.blast",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-    prodigal = expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
+    prodigal = expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
                       contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                       prod_ext=prodigal_ext
                       )
@@ -141,4 +148,5 @@ def aggregate_contigs(wildcards):
                     )
 
     #return prodigal + pyani
-    return prodigal + fastani
+    #return prodigal + fastani
+    return prodigal

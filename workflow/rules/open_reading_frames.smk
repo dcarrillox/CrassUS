@@ -5,18 +5,18 @@ rule prodigal:
     input:
         "results/3_contigs/0_contigs/{contig}.fasta",
     output:
-        gff = "results/5_prodigal/all_codings/{contig}_prod-11.gff",
-        faa = "results/5_prodigal/all_codings/{contig}_prod-11.faa",
-        tga_gff = "results/5_prodigal/all_codings/{contig}_prod-TGA.gff",
-        tga_faa = "results/5_prodigal/all_codings/{contig}_prod-TGA.faa",
-        tag_gff = "results/5_prodigal/all_codings/{contig}_prod-TAG.gff",
-        tag_faa = "results/5_prodigal/all_codings/{contig}_prod-TAG.faa",
+        gff = "results/4_prodigal/all_codings/{contig}_prod-11.gff",
+        faa = "results/4_prodigal/all_codings/{contig}_prod-11.faa",
+        tga_gff = "results/4_prodigal/all_codings/{contig}_prod-TGA.gff",
+        tga_faa = "results/4_prodigal/all_codings/{contig}_prod-TGA.faa",
+        tag_gff = "results/4_prodigal/all_codings/{contig}_prod-TAG.gff",
+        tag_faa = "results/4_prodigal/all_codings/{contig}_prod-TAG.faa",
     container: "library://dcarrillo/default/crassus:0.1"
     threads: 1
     log:
-        log = "results/5_prodigal/all_codings/{contig}_prod-11.log",
-        tga_log = "results/5_prodigal/all_codings/{contig}_prod-TGA.log",
-        tag_log = "results/5_prodigal/all_codings/{contig}_prod-TAG.log",
+        log = "results/4_prodigal/all_codings/{contig}_prod-11.log",
+        tga_log = "results/4_prodigal/all_codings/{contig}_prod-TGA.log",
+        tag_log = "results/4_prodigal/all_codings/{contig}_prod-TAG.log",
     shell:
         "/software/prodigal -g 11 -f gff -a {output.faa} -o {output.gff} -i {input} &> {log.log} ; "
         "/software/prodigal -g 11 -TGA W -f gff -a {output.tga_faa} -o {output.tga_gff} -i {input} &> {log.tga_log} ; "
@@ -24,24 +24,24 @@ rule prodigal:
 
 rule coding_density:
     input:
-        # expand("results/5_prodigal/all_codings/{contig}_{prod_ext}",
+        # expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
         #         contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
         #         prod_ext=prodigal_ext
         #       )
         aggregate_densities
     output:
-        "results/5_prodigal/coding_summary.txt"
+        "results/4_prodigal/coding_summary.txt"
     params:
-        faa_dir = "results/5_prodigal/all_codings"
+        faa_dir = "results/4_prodigal/all_codings"
     script:
         "../../scripts/summarize_coding_density.py"
 
 checkpoint pick_best_coding:
     input:
-        "results/5_prodigal/coding_summary.txt"
+        "results/4_prodigal/coding_summary.txt"
     output:
-        directory("results/5_prodigal/best_coding")
+        directory("results/4_prodigal/best_coding")
     params:
-        raw_dir = "results/5_prodigal/all_codings"
+        raw_dir = "results/4_prodigal/all_codings"
     script:
         "../../scripts/pick_best_coding.py"

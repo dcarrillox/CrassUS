@@ -13,13 +13,14 @@ From: continuumio/miniconda3
   container.yml
 	fastANI
 	all_crass_proteins.faa
+	crass_reference_TerL.mafft-einsi
 
 %post
   # update OS
   apt update && apt upgrade -y
 
   # create dirs for data and software
-  mkdir data && mv profiles genomes all_crass_proteins.faa data
+  mkdir data && mv profiles genomes all_crass_proteins.faa crass_reference_TerL.mafft-einsi data
   mkdir software && mv prodigal fastANI container.yml software
 
   # update conda
@@ -46,5 +47,5 @@ From: continuumio/miniconda3
   conda activate container
 
   # create blastdb for the crass_genomes
-  cat /data/genomes/*.fasta > /data/genomes/all_genomes.fasta
-  makeblastdb -in /data/genomes/all_genomes.fasta -out /data/genomes/all_genomes -dbtype nucl
+  #cat /data/genomes/*.fasta > /data/genomes/all_genomes.fasta
+  #makeblastdb -in /data/genomes/all_genomes.fasta -out /data/genomes/all_genomes -dbtype nucl
