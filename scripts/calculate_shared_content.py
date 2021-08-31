@@ -14,12 +14,13 @@ os.system(f"cut -f1 {snakemake.input.tsv} | sort | uniq -c | sort -r -n > {snake
 
 # create an identifier for each cluster, from biggest cluster to smallest
 cluster_ids = dict()
-cont = 1
+cont = 0
 lines = [line.strip().split(" ") for line in open(snakemake.params.nprots_cluster).readlines()]
 for line in lines:
     if int(line[0]) > 1:
-        cluster_ids[line[1]] = f"cluster_{cont}"
         cont += 1
+        cluster_ids[line[1]] = f"cluster_{cont}"
+
 
 # init an empty dataframe, rows are the clusters and columns the genomes
 df = pd.DataFrame(index=[f"cluster_{i}" for i in range(1, cont+1)], columns=all_genomes)
@@ -72,9 +73,53 @@ for contig in contigs:
             # fill df2 with it. query is the row, ref is the column
             df2.loc[ref, contig] = shared_perc
 
+
+# write the shared content matrix to outfile
+# NW that only found contigs are in the columns. The table is not intended to be
+# simetric, it only contains sharing values of the contigs but not of the reference
+# genomes
+df2.to_csv(snakemake.output.shared, sep="\t")
+
+
+################
+# shared content ALL GENOMES
+# (to assess cutoff values)
+################
+
+# get total n_prots per genome
+genomes_totalp = {genome:0 for genome in all_genomes}
+for prot in prots:
+    genome_id = prot.split("|")[0]
+    genomes_totalp[genome_id] += 1
+
+# store each genome (column) in a dict, k=genome  v=clusters_presabs
+genomes_clusters = {genome:df[genome].tolist() for genome in all_genomes}
+
+# init a dataframe, all genomes in the rows, all genomes in the columns
+#contigs = sorted([os.path.basename(prot).split("_prod")[0] for prot in snakemake.input.prots_files])
+df3 = pd.DataFrame(index=all_genomes, columns=all_genomes)
+df3 = df3.fillna(0)
+
+print(cont)
+# iterate the genomes and compare them
+for query in all_genomes:
+    for ref in all_genomes:
+        shared = 0
+        # check it is not a self comparison
+        if ref != query:
+            for i in range(0, cont):
+                if genomes_clusters[query][i] > 0 and genomes_clusters[ref][i] > 0:
+                    #print(genomes_clusters[contig][i], genomes_clusters[ref][i])
+                    shared += genomes_clusters[query][i]
+
+            # compute the shared perc
+            shared_perc = round(float(shared/genomes_totalp[query]), 3)
+            # fill df2 with it. query is the row, ref is the column
+            df3.loc[query, ref] = shared_perc
+
         # self comparison (diagonal of the matrix)
         else:
-            df.loc[ref, contig] = 1
+            df3.loc[query, ref] = 1
 
 
 # write the shared content matrix to outfile
