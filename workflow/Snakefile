@@ -7,8 +7,8 @@ rule all:
         "results/merged.txt",
         aggregate_best_codings,
         "results/4_prodigal/coding_summary.txt",
-        #"results/6_clustering/clustering.tsv",
-        #"results/6_clustering/shared_content_matrix.txt"
+        "results/6_clustering/clustering.tsv",
+        "results/6_clustering/shared_content_matrix.txt",
         "results/6_terl_tree/terl_tree.nwk"
 
 
