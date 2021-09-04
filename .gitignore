@@ -12,3 +12,4 @@ crassus_genomes.txt
 .cache/
 test.txt
 config/.*
+.Rproj.user

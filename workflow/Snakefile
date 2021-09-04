@@ -9,7 +9,8 @@ rule all:
         "results/4_prodigal/coding_summary.txt",
         "results/6_clustering/clustering.tsv",
         "results/6_clustering/shared_content_matrix.txt",
-        "results/6_terl_tree/terl_tree.nwk"
+        "results/6_terl_tree/terl_tree.nwk",
+        "results/taxonomic_classification.txt"
 
 
 include: "rules/fastq_qc.smk"
@@ -17,6 +18,7 @@ include: "rules/assembly.smk"
 include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
 include: "rules/terl_tree.smk"
+include: "rules/protein_clustering.smk"
 
 rule blastn:
     input:
@@ -63,49 +65,22 @@ checkpoint pyani:
 
 
 
-# rule pyani_heatmap:
-#     input:
-
-
-
-rule proteins_clustering:
+rule obtain_taxonomy:
     input:
-        get_prots_files
+        terl_tree = rules.fasttree_terl.output,
+        shared_c  = rules.calculate_shared_prots.output.shared,
+        found_contigs = expand("results/3_contigs/0_contigs/{contig}.fasta",
+                                contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
+                              )
     output:
-        tmp = temp(directory("results/6_clustering/tmp")),
-        tsv = "results/6_clustering/clustering.tsv"
-    container: "library://dcarrillo/default/crassus:0.1"
+        "results/taxonomic_classification.txt"
     params:
-        prots_faa = "results/6_clustering/db/all_proteins.faa",
-        prots_db  = "results/6_clustering/db/all_proteins",
-        out_prefx = "results/6_clustering/clustering"
-    threads: 4
-    log:
-        db = "results/6_clustering/db/db.log",
-        clust = "results/6_clustering/clustering.log",
-        tsv = "results/6_clustering/tsv.log"
-    shell:
-        """
-        mkdir -p results/6_clustering/db ;
-        cat {input} /data/all_crass_proteins.faa > {params.prots_faa} ;
-        mmseqs createdb {params.prots_faa} {params.prots_db} >> {log.db};
-        mmseqs cluster {params.prots_db} {params.out_prefx} {output.tmp} \
-            -c 0 --threads {threads} -s 6 --cluster-steps 4 --cluster-reassign >> {log.clust} ;
-        mmseqs createtsv {params.prots_db} {params.prots_db} {params.out_prefx} \
-            {output.tsv} >> {log.tsv} ;
-        """
+        taxonomy = "resources/terL/crass_taxonomy.txt"
+    #container: "library://dcarrillo/default/crassus:0.1"
+    conda: "../envs/ete3_env.yaml"
+    script: "../scripts/final_taxonomic_classification.py"
 
-rule calculate_shared_prots:
-    input:
-        prots_files = get_prots_files,
-        tsv = rules.proteins_clustering.output.tsv
-    output:
-        presabs = "results/6_clustering/presabs_matrix.txt",
-        shared  = "results/6_clustering/shared_content_matrix.txt"
-    params:
-        nprots_cluster = "results/6_clustering/nprots_cluster.txt"
-    script:
-        "../scripts/calculate_shared_content.py"
+
 
 
 rule merge_test:

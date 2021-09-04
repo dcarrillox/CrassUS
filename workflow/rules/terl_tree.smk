@@ -23,14 +23,6 @@ rule get_terl_proteins:
     script:
         "../../scripts/get_terl_proteins.py"
 
-# rule get_terl_proteins_summary:
-#     input:
-#         get_terl_faa_files
-#     output:
-#         "results/6_terl_tree/terl_scan/terl_scan.summary"
-#
-
-
 rule mafft_terl:
     input:
         get_terl_faa_files
@@ -68,5 +60,4 @@ rule fasttree_terl:
         else
             fasttree -log {log} {input} > {output}
         fi
-
         """
