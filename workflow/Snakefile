@@ -3,17 +3,20 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        #"results/2_profiles_scan/matching_contigs.txt",
-        "results/merged.txt",
+        # "results/2_profiles_scan/matching_contigs.txt",
+        # "results/merged.txt",
         aggregate_best_codings,
-        "results/4_prodigal/coding_summary.txt",
-        "results/6_clustering/clustering.tsv",
-        "results/6_clustering/shared_content_matrix.txt",
-        "results/6_terl_tree/terl_tree.nwk",
-        "results/taxonomic_classification.txt"
+        # "results/4_prodigal/coding_summary.txt",
+        # "results/6_clustering/clustering.tsv",
+        # "results/6_clustering/shared_content_matrix.txt",
+        # "results/6_terl_tree/terl_tree.nwk",
+        # "results/taxonomic_classification.txt"
+        # expand("results/1_assembly/1_scaff20k/{sample}.fasta",
+        #         sample=sample_sheet.index.tolist())
 
 
-include: "rules/fastq_qc.smk"
+
+
 include: "rules/assembly.smk"
 include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
