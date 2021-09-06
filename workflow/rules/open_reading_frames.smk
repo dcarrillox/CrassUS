@@ -60,3 +60,22 @@ checkpoint pick_best_coding:
         raw_dir = "results/4_prodigal/all_codings"
     script:
         "../../scripts/pick_best_coding.py"
+
+
+rule annotate_proteins_best_coding:
+    input:
+        fasta = "results/4_prodigal/best_coding/{prots}.faa",
+        profile = "resources/yutin_2021/all_profiles/all_yutin_profiles.hmm.h3f"
+    output:
+        outfile = "results/4_prodigal/best_coding/functional_annot/{prots}.hmmtxt",
+        domtblout = "results/4_prodigal/best_coding/functional_annot/{prots}.domtxt"
+    log:
+        "logs/yutin_annot/{prots}.log"
+    params:
+        evalue_threshold=0.00001,
+        # if bitscore threshold provided, hmmsearch will use that instead
+        #score_threshold=50,
+        extra="",
+    threads: 2
+    wrapper:
+        "0.78.0/bio/hmmer/hmmsearch"

@@ -86,7 +86,7 @@ def main():
             to_write.append(coding)
 
     with open(snakemake.output[0], "w") as fout:
-        fout.write("contig\tcodingtlength\tdensity\tn_prots\tmean_len\n")
+        fout.write("contig\tcoding\tlength\tdensity\tn_prots\tmean_len\n")
         for line in to_write:
             fout.write("\t".join(line) + "\n")
 
