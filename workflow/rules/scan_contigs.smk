@@ -16,22 +16,33 @@ rule transeq:
 
 rule hmmsearch_six_frames:
     input:
-        "results/1_assembly/2_six_frames/{sample}.faa"
+        fasta = "results/1_assembly/2_six_frames/{sample}.faa",
+        profile = "resources/crass_conserved_genes.hmm.h3f"
     output:
-        txt = "results/2_profiles_scan/{sample}.hmmtxt",
-        dom = "results/2_profiles_scan/{sample}.domtxt"
-    container: "library://dcarrillo/default/crassus:0.1"
+        outfile = "results/2_profiles_scan/{sample}.hmmtxt",
+        domtblout = "results/2_profiles_scan/{sample}.domtxt"
+    #container: "library://dcarrillo/default/crassus:0.1"
+    log:
+        "logs/hmmsearch/{sample}.log"
+    params:
+        evalue_threshold=0.00001,
+        # if bitscore threshold provided, hmmsearch will use that instead
+        #score_threshold=50,
+        extra="",
     threads: 2
-    shell:
-        '''
-        size=$(stat --printf="%s" {input})
-        if [[ $size -eq 0 ]]
-        then
-            touch {output}
-        else
-            hmmsearch --cpu {threads} -o {output.txt} --domtblout {output.dom} --noali --notextw --acc /data/profiles/crass_conserved_genes.hmm {input}
-        fi
-        '''
+    wrapper:
+        "0.78.0/bio/hmmer/hmmsearch"
+
+    # shell:
+    #     '''
+    #     size=$(stat --printf="%s" {input})
+    #     if [[ $size -eq 0 ]]
+    #     then
+    #         touch {output}
+    #     else
+    #         hmmsearch --cpu {threads} -o {output.txt} --domtblout {output.dom} --noali --notextw --acc /data/profiles/crass_conserved_genes.hmm {input}
+    #     fi
+    #     '''
 
 rule parse_hmmsearch_six_frames:
     input:

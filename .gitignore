@@ -13,3 +13,4 @@ crassus_genomes.txt
 test.txt
 config/.*
 .Rproj.user
+config/samples.tsv
