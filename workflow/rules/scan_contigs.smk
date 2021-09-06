@@ -17,7 +17,7 @@ rule transeq:
 rule hmmsearch_six_frames:
     input:
         fasta = "results/1_assembly/2_six_frames/{sample}.faa",
-        profile = "resources/crass_conserved_genes.hmm.h3f"
+        profile = "resources/yutin_2021/scan_contigs/crass_conserved_genes.hmm.h3f"
     output:
         outfile = "results/2_profiles_scan/{sample}.hmmtxt",
         domtblout = "results/2_profiles_scan/{sample}.domtxt"
