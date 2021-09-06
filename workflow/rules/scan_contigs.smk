@@ -25,7 +25,7 @@ rule hmmsearch_six_frames:
     log:
         "logs/hmmsearch/{sample}.log"
     params:
-        evalue_threshold=0.00001,
+        evalue_threshold=0.001,
         # if bitscore threshold provided, hmmsearch will use that instead
         #score_threshold=50,
         extra="",
