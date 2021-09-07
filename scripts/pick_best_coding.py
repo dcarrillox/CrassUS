@@ -1,6 +1,8 @@
 from Bio import SeqIO
 import glob,os
 
+# env: utils.yaml
+
 def format_faa_headers(faa_file, out_dir):
     contig_id = os.path.basename(faa_file).split("_prod-")[0]
 

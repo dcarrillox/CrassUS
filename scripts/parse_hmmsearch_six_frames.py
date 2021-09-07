@@ -1,5 +1,7 @@
 from Bio import SearchIO
 
+# env: utils.yaml
+
 # Looking at hit's evalue might be too greedy, better check the ivalue of the hsp(s)
 
 to_write = list()

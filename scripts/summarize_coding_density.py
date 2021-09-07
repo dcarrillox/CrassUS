@@ -2,6 +2,7 @@ import os, glob
 import numpy as np
 from Bio import SeqIO
 
+# env: utils.yaml
 
 def calculate_coding_density(gff_file):
     '''

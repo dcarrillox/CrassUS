@@ -1,5 +1,7 @@
 from Bio import SeqIO
 
+# env: utils.yaml
+
 records = SeqIO.parse(snakemake.input[0], "fasta")
 
 # measure the length of each record, store in a dict

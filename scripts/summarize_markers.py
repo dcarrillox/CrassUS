@@ -2,7 +2,9 @@ import pandas as pd
 from Bio import SeqIO
 import os
 
-#print(snakemake.input[0])
+# env: utils.yaml
+
+
 # gather all the summary files and put them in a single table
 summary_files = [file for file in snakemake.input if file.endswith(".summary")]
 rows = list()

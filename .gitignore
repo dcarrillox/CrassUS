@@ -14,3 +14,4 @@ crassus_genomes.txt
 test.txt
 config/.*
 .Rproj.user
+envs/list.txt

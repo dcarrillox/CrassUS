@@ -10,7 +10,7 @@ rule all:
         # "results/6_clustering/shared_content_matrix.txt",
         # "results/6_terl_tree/terl_tree.nwk",
         # "results/taxonomic_classification.txt"
-        "results/5_phylogenies/markers.summary",
+        #"results/5_phylogenies/markers.summary",
         gather_trees
 
 
@@ -79,7 +79,7 @@ checkpoint pyani:
 #     params:
 #         taxonomy = "resources/terL/crass_taxonomy.txt"
 #     #container: "library://dcarrillo/default/crassus:0.1"
-#     conda: "../envs/ete3_env.yaml"
+#     conda: "../../envs/ete3_env.yaml"
 #     script: "../scripts/final_taxonomic_classification.py"
 
 

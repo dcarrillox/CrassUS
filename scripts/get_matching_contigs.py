@@ -1,6 +1,7 @@
 from Bio import SeqIO
 import os
 
+# env: utils.yaml
 
 os.makedirs(snakemake.output[0], exist_ok = True)
 

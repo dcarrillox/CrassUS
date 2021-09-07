@@ -6,7 +6,8 @@ rule get_marker_proteins:
     output:
         faa = "results/5_phylogenies/markers_scan/{prots}_markers.faa",
         summary = "results/5_phylogenies/markers_scan/{prots}_markers.summary"
-    #container: "library://dcarrillo/default/crassus:0.1"
+    conda:
+        "../../envs/utils.yaml"
     script:
         "../../scripts/get_marker_genes.py"
 
@@ -16,6 +17,8 @@ checkpoint summarize_markers:
     output:
         summary = "results/5_phylogenies/markers.summary",
         faa_dir = directory("results/5_phylogenies/markers_faa")
+    conda:
+        "../../envs/utils.yaml"
     script:
         "../../scripts/summarize_markers.py"
 
@@ -27,20 +30,13 @@ rule mafft:
     output:
         "results/5_phylogenies/msa/{marker}.msa"
     threads: 4
+    conda:
+        "../../envs/phylogenies.yaml"
     shell:
         """
         mafft --add {input.found} --thread {threads} {input.ref} > {output}
         """
 
-
-
-rule merge_trees:
-    input:
-        gather_trees
-    output:
-        "trees_gathered.txt"
-    shell:
-        "touch {output}"
 # rule mafft_terl:
 #     input:
 #         get_terl_faa_files

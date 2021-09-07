@@ -32,22 +32,16 @@ rule prodigal:
         resources/prodigal ${{mode}} -TGA W -f gff -a {output.tga_faa} -o {output.tga_gff} -i {input} &> {log.tga_log} ;
         resources/prodigal ${{mode}} -TAG Q -f gff -a {output.tag_faa} -o {output.tag_gff} -i {input} &> {log.tag_log}
         '''
-        # "echo {params.length}"
-        # "resources/prodigal -g 11 -f gff -a {output.faa} -o {output.gff} -i {input} &> {log.log} ; "
-        # "resources/prodigal -g 11 -TGA W -f gff -a {output.tga_faa} -o {output.tga_gff} -i {input} &> {log.tga_log} ; "
-        # "resources/prodigal -g 11 -TAG Q -f gff -a {output.tag_faa} -o {output.tag_gff} -i {input} &> {log.tag_log} "
 
 rule coding_density:
     input:
-        # expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
-        #         contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
-        #         prod_ext=prodigal_ext
-        #       )
         aggregate_densities
     output:
         "results/4_prodigal/coding_summary.txt"
     params:
         faa_dir = "results/4_prodigal/all_codings"
+    conda:
+        "../../envs/utils.yaml"
     script:
         "../../scripts/summarize_coding_density.py"
 
@@ -58,9 +52,10 @@ checkpoint pick_best_coding:
         directory("results/4_prodigal/best_coding")
     params:
         raw_dir = "results/4_prodigal/all_codings"
+    conda:
+        "../../envs/utils.yaml"
     script:
         "../../scripts/pick_best_coding.py"
-
 
 rule annotate_proteins_best_coding:
     input:

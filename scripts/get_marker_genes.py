@@ -2,6 +2,8 @@ from Bio import SeqIO, SearchIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 
+# env: utils.yaml
+
 # read marker genes from file
 lines = [line.strip().split("\t") for line in open("resources/yutin_2021/all_profiles/marker_profiles.txt").readlines()]
 profs_names = {line[0]:line[1] for line in lines}
