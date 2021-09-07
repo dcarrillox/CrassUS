@@ -3,7 +3,6 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        # "results/2_profiles_scan/matching_contigs.txt",
         # "results/merged.txt",
         aggregate_best_codings,
         # "results/4_prodigal/coding_summary.txt",
@@ -11,17 +10,17 @@ rule all:
         # "results/6_clustering/shared_content_matrix.txt",
         # "results/6_terl_tree/terl_tree.nwk",
         # "results/taxonomic_classification.txt"
-        # expand("results/1_assembly/1_scaff20k/{sample}.fasta",
-        #         sample=sample_sheet.index.tolist())
-
-
+        "results/5_phylogenies/markers.summary",
+        gather_trees
 
 
 include: "rules/assembly.smk"
 include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
-include: "rules/terl_tree.smk"
+include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
+
+
 
 rule blastn:
     input:
@@ -68,33 +67,20 @@ checkpoint pyani:
 
 
 
-rule obtain_taxonomy:
-    input:
-        terl_tree = rules.fasttree_terl.output,
-        shared_c  = rules.calculate_shared_prots.output.shared,
-        found_contigs = expand("results/3_contigs/0_contigs/{contig}.fasta",
-                                contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
-                              )
-    output:
-        "results/taxonomic_classification.txt"
-    params:
-        taxonomy = "resources/terL/crass_taxonomy.txt"
-    #container: "library://dcarrillo/default/crassus:0.1"
-    conda: "../envs/ete3_env.yaml"
-    script: "../scripts/final_taxonomic_classification.py"
-
-
-
-
-rule merge_test:
-    input:
-        aggregate_contigs
-    output:
-        "results/merged.txt"
-    shell:
-        """
-        ls {input} > {output}
-        """
+# rule obtain_taxonomy:
+#     input:
+#         terl_tree = rules.fasttree_terl.output,
+#         shared_c  = rules.calculate_shared_prots.output.shared,
+#         found_contigs = expand("results/3_contigs/0_contigs/{contig}.fasta",
+#                                 contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
+#                               )
+#     output:
+#         "results/taxonomic_classification.txt"
+#     params:
+#         taxonomy = "resources/terL/crass_taxonomy.txt"
+#     #container: "library://dcarrillo/default/crassus:0.1"
+#     conda: "../envs/ete3_env.yaml"
+#     script: "../scripts/final_taxonomic_classification.py"
 
 
 #######

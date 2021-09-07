@@ -13,7 +13,7 @@ records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
 for record in records:
     if record.id in profs_names:
         for hit in record.hits:
-            if hit.bitscore > 20:
+            if hit.bitscore > 15:
                 for hsp in hit.hsps:
                     if hsp.is_included:
                         names_hits[profs_names[record.id]].append(hit.id)
@@ -71,7 +71,7 @@ for name, hits in names_hits.items():
                     print(fragments[i],fragments[i+1])
                     n_gene_1 = int(fragments[i].split("|")[-1])
                     n_gene_2 = int(fragments[i+1].split("|")[-1])
-                    if abs(n_gene_1 - n_gene_2) > 3:
+                    if abs(n_gene_1 - n_gene_2) > 5:
                         check = False
                         names_summary[name] = "multiple copies"
                         break

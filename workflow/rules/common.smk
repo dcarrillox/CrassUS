@@ -53,12 +53,35 @@ def get_prots_files(wildcards):
                       )
     return prots_files
 
-def get_terl_faa_files(wildcards):
+def get_markers_files(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    terl_faa_files = expand("results/6_terl_tree/terl_scan/{prots}_TerL.faa",
+    markers_summary_files = expand("results/5_phylogenies/markers_scan/{prots}_markers.summary",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
-    return terl_faa_files
+    markers_faa_files = expand("results/5_phylogenies/markers_scan/{prots}_markers.faa",
+                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
+                      )
+    return markers_summary_files + markers_faa_files
+
+def gather_trees(wildcards):
+    # check the config file to know which markers are requested for the trees
+    config_markers = list()
+    for marker in config["phylogenies"]:
+        if config["phylogenies"][marker]:
+            config_markers.append(marker)
+
+    # get the markers given by the checkpoint
+    checkpoint_output = checkpoints.summarize_markers.get(**wildcards).output.faa_dir
+    checkpoint_markers = glob_wildcards(f"{checkpoint_output}/{{marker}}.faa").marker
+
+    # as final, take the intersection between the given by the checpoint and the requested from the config file
+    final_markers = [marker for marker in checkpoint_markers if marker in config_markers]
+    mafft_files = expand("results/5_phylogenies/msa/{marker}.msa",
+                    marker=final_markers
+                    )
+
+    print(final_markers)
+    return mafft_files
 
 
 # the name of this function needs to be different and make clear that it aggregates

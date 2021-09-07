@@ -1,1 +1,7 @@
 sample_sheet: config/samples.tsv
+
+phylogenies:
+  TerL: True
+  MCP: True
+  portal: False
+  primase: False
