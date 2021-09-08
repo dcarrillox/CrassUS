@@ -68,6 +68,24 @@ rule measure_leaves_distances:
     script:
         "../../scripts/measure_leaves_distances.py"
 
+rule run_DTR_blast:
+    input:
+        "results/3_contigs/0_contigs/{contig}.fasta"
+    output:
+        temp(multiext("results/3_contigs/0_contigs/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
+        blast = "results/3_contigs/0_contigs/{contig}.dtr_blast",
+        done = "results/3_contigs/0_contigs/.{contig}.dtr_blast_done",
+    params:
+        tmp_fasta = "results/3_contigs/0_contigs/{contig}.dtr_fasta",
+        tmp_db = "results/3_contigs/0_contigs/{contig}.dtr_db"
+    conda:
+        "../../envs/utils.yaml"
+    script:
+        "../../scripts/run_DTR_blast.py"
+
+
+#rule assess_completeness:
+
 
 # rule assign_taxonomy:
 #     input:
