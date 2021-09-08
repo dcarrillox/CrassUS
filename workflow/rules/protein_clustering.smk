@@ -4,7 +4,9 @@ rule proteins_clustering:
     output:
         tmp = temp(directory("results/6_clustering/tmp")),
         tsv = "results/6_clustering/clustering.tsv"
-    container: "library://dcarrillo/default/crassus:0.1"
+    #container: "library://dcarrillo/default/crassus:0.1"
+    conda:
+        "../../envs/clustering.yaml"
     params:
         prots_faa = "results/6_clustering/db/all_proteins.faa",
         prots_db  = "results/6_clustering/db/all_proteins",
@@ -17,7 +19,7 @@ rule proteins_clustering:
     shell:
         """
         mkdir -p results/6_clustering/db ;
-        cat {input} /data/all_crass_proteins.faa > {params.prots_faa} ;
+        cat {input} resources/all_crass_proteins.faa > {params.prots_faa} ;
         mmseqs createdb {params.prots_faa} {params.prots_db} >> {log.db};
         mmseqs cluster {params.prots_db} {params.out_prefx} {output.tmp} \
             -c 0 --threads {threads} -s 6 --cluster-steps 4 --cluster-reassign >> {log.clust} ;
@@ -34,5 +36,7 @@ rule calculate_shared_prots:
         shared  = "results/6_clustering/shared_content_matrix.txt"
     params:
         nprots_cluster = "results/6_clustering/nprots_cluster.txt"
+    conda:
+        "../../envs/utils.yaml"
     script:
-        "../scripts/calculate_shared_content.py"
+        "../../scripts/calculate_shared_content.py"
