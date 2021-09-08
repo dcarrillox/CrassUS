@@ -79,9 +79,15 @@ def gather_trees(wildcards):
     mafft_files = expand("results/5_phylogenies/msa/{marker}.msa",
                     marker=final_markers
                     )
+    tree_files = expand("results/5_phylogenies/tree/{marker}_trimmed.nwk",
+                    marker=final_markers
+                    )
+    dist_files = expand("results/5_phylogenies/tree/{marker}_trimmed.dist",
+                    marker=final_markers
+                    )
 
-    print(final_markers)
-    return mafft_files
+
+    return dist_files
 
 
 # the name of this function needs to be different and make clear that it aggregates

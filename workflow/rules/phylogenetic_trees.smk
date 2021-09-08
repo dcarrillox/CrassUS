@@ -22,8 +22,7 @@ checkpoint summarize_markers:
     script:
         "../../scripts/summarize_markers.py"
 
-
-rule mafft:
+rule multiple_sequence_alignment:
     input:
         found = "results/5_phylogenies/markers_faa/{marker}.faa",
         ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
@@ -37,41 +36,53 @@ rule mafft:
         mafft --add {input.found} --thread {threads} {input.ref} > {output}
         """
 
-# rule mafft_terl:
+rule msa_trimming:
+    input:
+        "results/5_phylogenies/msa/{marker}.msa"
+    output:
+        "results/5_phylogenies/msa/{marker}_trimmed.msa"
+    conda:
+        "../../envs/phylogenies.yaml"
+    shell:
+        "trimal -in {input} -out {output} -gt 0.9"
+
+rule make_trees:
+    input:
+        "results/5_phylogenies/msa/{marker}_trimmed.msa"
+    output:
+        "results/5_phylogenies/tree/{marker}_trimmed.nwk"
+    conda:
+        "../../envs/phylogenies.yaml"
+    shell:
+        "fasttree {input} > {output}"
+
+rule measure_leaves_distances:
+    input:
+        "results/5_phylogenies/tree/{marker}_trimmed.nwk"
+    output:
+        "results/5_phylogenies/tree/{marker}_trimmed.dist"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/measure_leaves_distances.py"
+
+
+# rule assign_taxonomy:
 #     input:
-#         get_terl_faa_files
-#     output:
-#         query_terl = "results/6_terl_tree/query_terl_seqs.faa",
-#         mafft_out = "results/6_terl_tree/terl_alignment.fasta"
-#     container: "library://dcarrillo/default/crassus:0.1"
-#     threads: 4
-#     shell:
-#         """
-#         cat {input} > {output.query_terl}
-#         size=$(stat --printf="%s" {output.query_terl})
-#         if [[ $size -eq 0 ]]
-#         then
-#             touch {output.mafft_out}
-#         else
-#             mafft --add {output.query_terl} --thread 4 /data/crass_reference_TerL.mafft-einsi > {output.mafft_out}
-#         fi
-#         """
 #
-# rule fasttree_terl:
-#     input:
-#         rules.mafft_terl.output.mafft_out
+#
+#
+#         terl_tree = rules.fasttree_terl.output,
+#         shared_c  = rules.calculate_shared_prots.output.shared,
+#         found_contigs = expand("results/3_contigs/0_contigs/{contig}.fasta",
+#                                 contig=glob_wildcards("results/3_contigs/0_contigs/{contig}.fasta").contig,
+#                               )
 #     output:
-#         "results/6_terl_tree/terl_tree.nwk"
-#     container: "library://dcarrillo/default/crassus:0.1"
-#     log:
-#         "results/6_terl_tree/terl_tree.log"
-#     shell:
-#         """
-#         size=$(stat --printf="%s" {input})
-#         if [[ $size -eq 0 ]]
-#         then
-#             touch {output}
-#         else
-#             fasttree -log {log} {input} > {output}
-#         fi
-#         """
+#         "results/taxonomic_classification.txt"
+#     params:
+#         taxonomy = "resources/terL/crass_taxonomy.txt"
+#     #container: "library://dcarrillo/default/crassus:0.1"
+#     conda: "../../envs/phylogenies.yaml"
+#     script: "../scripts/final_taxonomic_classification.py"
