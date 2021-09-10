@@ -5,7 +5,9 @@ rule all:
     input:
         # aggregate_best_codings,
         gather_trees,
-        "results/6_clustering/shared_content_matrix.txt"
+        "results/6_clustering/shared_content_matrix.txt",
+        aggregate_contigs,
+        "results/5_phylogenies/tree/taxonomic_classification.txt"
 
 
 include: "rules/assembly.smk"
@@ -13,6 +15,8 @@ include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
 include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
+include: "rules/assign_taxonomy.smk"
+
 
 
 
@@ -58,7 +62,6 @@ checkpoint pyani:
         "results/7_pyani/{contig}/{contig}.log"
     script:
         "../scripts/run_pyani.py"
-
 
 
 

@@ -76,9 +76,7 @@ def gather_trees(wildcards):
 
     # as final, take the intersection between the given by the checpoint and the requested from the config file
     final_markers = [marker for marker in checkpoint_markers if marker in config_markers]
-    mafft_files = expand("results/5_phylogenies/msa/{marker}.msa",
-                    marker=final_markers
-                    )
+
     tree_files = expand("results/5_phylogenies/tree/{marker}_trimmed.nwk",
                     marker=final_markers
                     )
@@ -87,7 +85,7 @@ def gather_trees(wildcards):
                     )
 
 
-    return dist_files
+    return tree_files
 
 
 # the name of this function needs to be different and make clear that it aggregates
@@ -108,7 +106,10 @@ def aggregate_contigs(wildcards):
     pyani = expand("results/7_pyani/{contig}/.done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-
+    dtr = expand("results/3_contigs/0_contigs/.{contig}.dtr_blast_done",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
     #return prodigal + pyani
     #return prodigal + fastani
-    return prodigal
+    #return prodigal
+    return dtr
