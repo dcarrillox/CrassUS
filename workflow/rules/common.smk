@@ -9,7 +9,7 @@ report: "report/workflow.rst"
 
 
 ###### Parse sample sheet ######
-sample_sheet = pd.read_table(config["sample_sheet"]).set_index("sample_id", drop=False)
+sample_sheet = pd.read_table(config["sample_sheet"], comment='#').set_index("sample_id", drop=False)
 
 ###### Wildcard constraints ######
 wildcard_constraints:
@@ -87,6 +87,12 @@ def gather_trees(wildcards):
 
     return tree_files
 
+def gather_dtr(wildcards):
+    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
+    dtr = expand("results/3_contigs/0_contigs/{contig}.dtr_blast_done",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
+    return dtr
 
 # the name of this function needs to be different and make clear that it aggregates
 # results from several steps. "contigs" is too vague
@@ -106,7 +112,7 @@ def aggregate_contigs(wildcards):
     pyani = expand("results/7_pyani/{contig}/.done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-    dtr = expand("results/3_contigs/0_contigs/.{contig}.dtr_blast_done",
+    dtr = expand("results/3_contigs/0_contigs/{contig}.dtr_blast_done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     #return prodigal + pyani

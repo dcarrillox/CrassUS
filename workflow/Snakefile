@@ -4,10 +4,12 @@ include: "rules/common.smk"
 rule all:
     input:
         # aggregate_best_codings,
-        gather_trees,
-        "results/6_clustering/shared_content_matrix.txt",
-        aggregate_contigs,
-        "results/5_phylogenies/tree/taxonomic_classification.txt"
+        # gather_trees,
+        # "results/6_clustering/shared_content_matrix.txt",
+        #aggregate_contigs,
+        "results/5_phylogenies/tree/taxonomic_classification_completeness.txt",
+        #"results/5_phylogenies/tree/taxonomic_classification.txt"
+        #gather_dtr
 
 
 include: "rules/assembly.smk"

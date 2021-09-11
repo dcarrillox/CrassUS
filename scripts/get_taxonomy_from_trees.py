@@ -2,19 +2,27 @@ from ete3 import Tree
 import pandas as pd
 import os
 
-# list the contigs that were found by crAssUS
-crassus_contigs = [os.path.basename(file).replace(".fasta", "") for file in snakemake.input.crassus_contigs]
+# list the contigs that were found by crAssUS.
+# crassus_contigs = [os.path.basename(file).replace(".fasta", "") for file in snakemake.input.crassus_contigs]
+# print(crassus_contigs)
+
+#print(snakemake.input.markers_summary)
+df = pd.read_csv(snakemake.input.markers_summary, sep="\t")
+crassus_contigs = df["contig"].to_list()
+#print(crassus_contigs)
 
 # get which markers wenth through the analysis
-print(snakemake.input.markers_trees)
+#print(snakemake.input.markers_trees)
 markers = [os.path.basename(tree_file).split("_trimmed.nwk")[0] for tree_file in snakemake.input.markers_trees]
-
+markers = sorted(markers, reverse=True)
 
 # init the taxa classification dict, containing all the markers that underwent the analysis
-crassus_classification = {contig:
-                                {f"family_{marker}":str(),f"subfamily_{marker}":str(), f"genus_{marker}":str()}
-                                for marker in markers
-                         for contig in crassus_contigs}
+crassus_classification = {contig:dict() for contig in crassus_contigs}
+for contig in crassus_classification:
+    for marker in markers:
+        crassus_classification[contig][f"family_{marker}"] = "unknown"
+        crassus_classification[contig][f"subfamily_{marker}"] = "unknown"
+        crassus_classification[contig][f"genus_{marker}"] = "unknown"
 
 # read crass_reference taxonomic classification
 crass_taxonomy = dict()
@@ -32,6 +40,10 @@ for marker_tree in snakemake.input.markers_trees:
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
 
+    # init a list to store which genomes were included in the tree, so I can
+    # say "Not found" in the final table
+    genomes_marker = list()
+
     # read tree
     t = Tree(marker_tree, format=1)
     # assign taxonomy for the reference crAssphages
@@ -44,11 +56,11 @@ for marker_tree in snakemake.input.markers_trees:
                               genus=crass_taxonomy[genome]["genus"],
                               genome=genome)
         else:
+            genomes_marker.append(genome)
             leaf.add_features(family="",
                               subfamily="",
                               genus="",
                               genome=genome)
-
 
     # find the LCA of the two outgroup species
     outgs_leaves = t.search_nodes(family="outgroup")
@@ -90,7 +102,17 @@ for marker_tree in snakemake.input.markers_trees:
                 crassus_classification[leaf.genome][f"genus_{marker}"] = genus[0]
 
 
+    # check which genomes are not present in the tree and call them as "Not found"
+    # for that marker
+    for genome in crassus_contigs:
+        if genome not in genomes_marker:
+            crassus_classification[genome][f"family_{marker}"] = "Not found"
+            crassus_classification[genome][f"subfamily_{marker}"] = "Not found"
+            crassus_classification[genome][f"genus_{marker}"] = "Not found"
+
+
 # convert the dictionary to table and write to csv with pandas
+#print(crassus_classification)
 df = pd.DataFrame(crassus_classification)
 tdf = df.transpose()
 tdf.to_csv(snakemake.output[0], sep="\t", index=True)
