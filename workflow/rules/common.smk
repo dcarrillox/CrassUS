@@ -10,6 +10,9 @@ report: "report/workflow.rst"
 
 ###### Parse sample sheet ######
 sample_sheet = pd.read_table(config["sample_sheet"], comment='#').set_index("sample_id", drop=False)
+# replace underscores in the samples_id by hyphen
+sample_sheet.index = sample_sheet.index.str.replace('_','-')
+print(sample_sheet.index)
 
 ###### Wildcard constraints ######
 wildcard_constraints:
