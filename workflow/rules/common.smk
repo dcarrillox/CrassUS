@@ -12,7 +12,7 @@ report: "report/workflow.rst"
 sample_sheet = pd.read_table(config["sample_sheet"], comment='#').set_index("sample_id", drop=False)
 # replace underscores in the samples_id by hyphen
 sample_sheet.index = sample_sheet.index.str.replace('_','-')
-print(sample_sheet.index)
+#print(sample_sheet.index) # comment when running --dag
 
 ###### Wildcard constraints ######
 wildcard_constraints:

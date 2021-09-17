@@ -17,7 +17,7 @@ include: "rules/scan_contigs.smk"
 include: "rules/open_reading_frames.smk"
 include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
-include: "rules/assign_taxonomy.smk"
+include: "rules/assess_taxonomy.smk"
 
 
 

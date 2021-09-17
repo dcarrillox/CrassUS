@@ -24,7 +24,8 @@ rule parse_trees:
         # markers_summary = checkpoints.summarize_markers.output.summary
         markers_summary = "results/5_phylogenies/markers.summary"
     output:
-        temp("results/5_phylogenies/tree/taxonomic_classification.txt")
+        #temp("results/5_phylogenies/tree/taxonomic_classification.txt")
+        "results/5_phylogenies/tree/taxonomic_classification.txt"
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     conda:
