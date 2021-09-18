@@ -64,32 +64,34 @@ for name, hits in names_hits.items():
                         fragments = sorted(hits, key=lambda fragment: int(fragment.split("|")[-1]), reverse=True)
 
 
-                # go through the fragments. If the distance is equal or lower than 3, merge
-                # the fragments. Otherwise, abort it.
-                check = True
-                print(strand, snakemake.wildcards.prots, name )
-                print(fragments)
-                for i in range(len(fragments)-1):
-                    print(fragments[i],fragments[i+1])
-                    n_gene_1 = int(fragments[i].split("|")[-1])
-                    n_gene_2 = int(fragments[i+1].split("|")[-1])
-                    if abs(n_gene_1 - n_gene_2) > 5:
-                        check = False
-                        names_summary[name] = "multiple copies"
-                        break
+                    # go through the fragments. If the distance is equal or lower than 5, merge
+                    # the fragments. Otherwise, abort it.
+                    check = True
+                    print(strand, snakemake.wildcards.prots, name )
+                    print(fragments)
+                    for i in range(len(fragments)-1):
+                        print(fragments[i],fragments[i+1])
+                        n_gene_1 = int(fragments[i].split("|")[-1])
+                        n_gene_2 = int(fragments[i+1].split("|")[-1])
+                        if abs(n_gene_1 - n_gene_2) > 5:
+                            check = False
+                            names_summary[name] = "multiple copies"
+                            break
 
-                if check:
-                    contig = fragments[0].split("|")[0]
-                    joint_n = "_".join([fragment.split("|")[-1] for fragment in fragments])
-                    seq = str()
-                    for fragment in fragments:
-                        seq += str(records[fragment].seq).replace("*", "")
+                    if check:
+                        contig = fragments[0].split("|")[0]
+                        joint_n = "_".join([fragment.split("|")[-1] for fragment in fragments])
+                        seq = str()
+                        for fragment in fragments:
+                            seq += str(records[fragment].seq).replace("*", "")
 
-                    joint_id = f"{contig}|{len(seq)}|{joint_n}"
-                    new_record = SeqRecord(Seq(seq), id=joint_id, description="")
+                        joint_id = f"{contig}|{len(seq)}|{joint_n}"
+                        new_record = SeqRecord(Seq(seq), id=joint_id, description="")
 
-                    to_write_faa.append(new_record)
-                    names_summary[name] = joint_id
+                        to_write_faa.append(new_record)
+                        names_summary[name] = joint_id
+                else:
+                    names_summary[name] = "wrong strands, check func. annot"
 
 
             # otherwise, just grab the complete terminase sequence
