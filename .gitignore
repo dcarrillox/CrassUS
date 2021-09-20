@@ -16,3 +16,5 @@ test.txt
 config/.*
 .Rproj.user
 envs/list.txt
+resources/genomes/*.fasta
+resources/fastANI_genomes.list

@@ -121,4 +121,4 @@ def aggregate_contigs(wildcards):
     #return prodigal + pyani
     #return prodigal + fastani
     #return prodigal
-    return dtr
+    return pyani

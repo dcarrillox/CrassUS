@@ -45,3 +45,9 @@ rule assess_completenes:
         "../../envs/phylogenies.yaml"
     script:
         "../../scripts/assess_completeness.py"
+
+# rule merge_markers_and_sharing_info:
+#     input:
+#         markers_table = rules.assess_completenes.output,
+#         sharing_table = rules.calculate_shared_prots.output.shared
+#     output:

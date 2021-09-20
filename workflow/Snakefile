@@ -6,8 +6,8 @@ rule all:
         # aggregate_best_codings,
         # gather_trees,
         # "results/6_clustering/shared_content_matrix.txt",
-        #aggregate_contigs,
-        "results/5_phylogenies/tree/taxonomic_classification_completeness.txt",
+        aggregate_contigs,
+        #"results/5_phylogenies/tree/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/tree/taxonomic_classification.txt"
         #gather_dtr
 
@@ -18,6 +18,7 @@ include: "rules/open_reading_frames.smk"
 include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
 include: "rules/assess_taxonomy.smk"
+include: "rules/genomes_alignments.smk"
 
 
 
@@ -34,36 +35,6 @@ rule blastn:
         "-db /data/genomes/all_genomes -out {output} -query {input} "
         "-xdrop_gap_final 150 -evalue 1e-15 -max_target_seqs 1 -task blastn "
         "-outfmt '6 qseqid sseqid length mismatch pident nident qlen slen qstart qend sstart send positive ppos gaps'"
-
-rule fastani:
-    input:
-        "results/3_contigs/0_contigs/{contig}.fasta",
-    output:
-        "results/6_fastani/{contig}.fastani"
-    threads: 2
-    container: "library://dcarrillo/default/crassus:0.1"
-    log:
-        "results/6_fastani/{contig}.log"
-    shell:
-        "/software/fastANI -q {input} --rl /data/genomes/genomes_reflist.txt -k 13 --fragLen 1000 "
-        "--minFraction 0.1 -t {threads} -o {output} &> {log}"
-
-checkpoint pyani:
-    input:
-        #fasta = "results/3_contigs/0_contigs/{contig}.fasta",
-        #ani   = "results/6_fastani/{contig}.fastani"
-        ani = rules.fastani.output
-    output:
-        done = "results/7_pyani/{contig}/.done"
-    params:
-        outdir = "results/7_pyani/{contig}",
-        tmp = directory("results/7_pyani/{contig}_tmp")
-    container: "library://dcarrillo/default/crassus:0.1"
-    threads: 4
-    log:
-        "results/7_pyani/{contig}/{contig}.log"
-    script:
-        "../scripts/run_pyani.py"
 
 
 

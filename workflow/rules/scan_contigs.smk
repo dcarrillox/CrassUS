@@ -49,10 +49,12 @@ checkpoint get_matching_contigs:
     input:
         "results/2_profiles_scan/matching_contigs.txt"
     output:
-        directory("results/3_contigs/0_contigs")
+        directory("results/3_contigs/0_contigs"),
+        fastani_list = "resources/fastANI_genomes.list"
     params:
         assemblies_dir = "results/1_assembly/1_scaff20k",
-        contigs_dir =    "results/3_contigs/0_contigs/"
+        contigs_dir =    "results/3_contigs/0_contigs",
+        genomes_list = "resources/genomes/genomes.list",
     conda:
         "../../envs/utils.yaml"
     script:
