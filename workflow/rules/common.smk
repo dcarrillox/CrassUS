@@ -101,7 +101,7 @@ def gather_dtr(wildcards):
 # results from several steps. "contigs" is too vague
 def aggregate_contigs(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    blast    = expand("results/5_blast/{contig}.blast",
+    megablast    = expand("results/8_megablast/{contig}/.done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     prodigal = expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
@@ -121,4 +121,4 @@ def aggregate_contigs(wildcards):
     #return prodigal + pyani
     #return prodigal + fastani
     #return prodigal
-    return pyani
+    return pyani + megablast

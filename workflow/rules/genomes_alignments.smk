@@ -32,12 +32,15 @@ rule pyani:
     script:
         "../../scripts/run_pyani.py"
 
-rule tblastx_genomes:
+rule megablast_genomes:
     input:
         rules.pyani.output.done
     output:
-        done = "results/8_tblastx/{contig}/.done"
+        done = "results/8_megablast/{contig}/.done"
     params:
-        outdir = "results/8_tblastx/{contig}"
+        pyani_dir = "results/7_pyani/{contig}",
+        contigs_dir = "results/3_contigs/0_contigs",
+        refgenomes_dir = "resources/genomes",
+        outdir = "results/8_megablast/{contig}"
     script:
-        "../../scripts/run_tblastx.py"
+        "../../scripts/run_megablast.py"
