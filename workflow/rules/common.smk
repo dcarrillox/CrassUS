@@ -36,7 +36,11 @@ def aggregate_best_codings(wildcards):
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         ext=["faa", "gff"]
                         )
-    return best_codings
+    genome_tables = expand(
+                        "results/4_prodigal/best_coding/genome_tables/{best_coding}.table",
+                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
+                        )
+    return best_codings + genome_tables
 
 def aggregate_pyani(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]

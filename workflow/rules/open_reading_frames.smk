@@ -74,3 +74,17 @@ rule annotate_proteins_best_coding:
     threads: 2
     wrapper:
         "0.78.0/bio/hmmer/hmmsearch"
+
+rule create_genome_table:
+    input:
+        gff = "results/4_prodigal/best_coding/{prots}.gff",
+        faa = "results/4_prodigal/best_coding/{prots}.faa",
+        hmmtxt = "results/4_prodigal/best_coding/functional_annot/{prots}.hmmtxt"
+    output:
+        "results/4_prodigal/best_coding/genome_tables/{prots}.table"
+    params:
+        yutin_names = "resources/yutin_2021/all_profiles/yutin_nicknames_profiles.txt"
+    conda:
+        "../../envs/utils.yaml"
+    script:
+        "../../scripts/create_genome_table.py"
