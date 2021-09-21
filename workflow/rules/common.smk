@@ -36,11 +36,7 @@ def aggregate_best_codings(wildcards):
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         ext=["faa", "gff"]
                         )
-    genome_tables = expand(
-                        "results/4_prodigal/best_coding/genome_tables/{best_coding}.table",
-                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
-                        )
-    return best_codings + genome_tables
+    return best_codings
 
 def aggregate_densities(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
@@ -119,7 +115,23 @@ def aggregate_contigs(wildcards):
     dtr = expand("results/3_contigs/0_contigs/{contig}.dtr_blast_done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
+    plot = expand("results/9_plots/{contig}.txt",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
     #return prodigal + pyani
     #return prodigal + fastani
     #return prodigal
-    return pyani + megablast
+    return plot
+
+def get_genome_tables_finished(wildcards):
+    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
+    genome_tables = expand(
+                        "results/4_prodigal/best_coding/genome_tables/{best_coding}.table",
+                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
+                        )
+    return genome_tables
+
+def gather_data_genoplotr(wildcards):
+    genome_table = glob.glob(f"results/4_prodigal/best_coding/genome_tables/{wildcards.contig}_prod-*.table")[0]
+    megablast = f"results/8_megablast/{wildcards.contig}.megablast"
+    return [megablast, genome_table]

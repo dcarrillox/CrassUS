@@ -88,3 +88,12 @@ rule create_genome_table:
         "../../envs/utils.yaml"
     script:
         "../../scripts/create_genome_table.py"
+
+
+rule genome_tables_finished:
+    input:
+        get_genome_tables_finished
+    output:
+        temp("results/4_prodigal/best_coding/genome_tables/.finished")
+    shell:
+        "touch {output}"

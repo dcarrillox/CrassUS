@@ -45,4 +45,11 @@ rule megablast_genomes:
     script:
         "../../scripts/run_megablast.py"
 
-#rule genoplot_genomes:
+rule genoplot_genomes:
+    input:
+        "results/4_prodigal/best_coding/genome_tables/.finished",
+        rules.megablast_genomes.output.megablast
+    output:
+        "results/9_plots/{contig}.txt"
+    shell:
+        "echo {input} > {output}"

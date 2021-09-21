@@ -11,12 +11,15 @@ df = pd.read_csv(snakemake.input.ani[0], sep="\t", header=None,
 query = df["query"][0]
 refs   = df["ref"].to_list()
 
-# don't remove query genome from the comparison list so there will be always an output file
-#refs.remove(query)
+if len(refs) > 5:
+    refs = refs[:5]
+
+# check that query contig is one of the top refs. This is not always the case, specially
+# at short contigs that get highly covered by itself but also by other longer contigs
+if query not in refs:
+    refs.insert(0,query)
 
 
-if len(refs) > 3:
-    refs = refs[:3]
 # create execution (tmp) folder
 os.makedirs(snakemake.params.tmp, exist_ok=True)
 # copy fasta file to the execution folder
