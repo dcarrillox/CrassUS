@@ -19,7 +19,7 @@ for record in records:
 records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
 for record in records:
     for hit in record.hits:
-        if hit.is_included:
+        if hit.is_included and if hit.bitscore > 15:
             #print([profiles[record.id.upper()], hit.evalue])
             yutin_annot[hit.id].append([profiles[record.id.upper()], hit.evalue])
 
