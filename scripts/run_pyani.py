@@ -11,23 +11,18 @@ df = pd.read_csv(snakemake.input.ani[0], sep="\t", header=None,
 query = df["query"][0]
 refs   = df["ref"].to_list()
 
-refs.remove(query)
+# don't remove query genome from the comparison list so there will be always an output file
+#refs.remove(query)
 
 
-# if there was any hit
-if refs:
-    if len(refs) > 3:
-        refs = refs[:3]
-    # create execution (tmp) folder
-    os.makedirs(snakemake.params.tmp, exist_ok=True)
-    # copy fasta file to the execution folder
-    os.system(f"cp {query} {' '.join(refs)} {snakemake.params.tmp}")
+if len(refs) > 3:
+    refs = refs[:3]
+# create execution (tmp) folder
+os.makedirs(snakemake.params.tmp, exist_ok=True)
+# copy fasta file to the execution folder
+#os.system(f"cp {query} {' '.join(refs)} {snakemake.params.tmp}")
+os.system(f"cp {' '.join(refs)} {snakemake.params.tmp}")
 
-    # run pyani
-    os.system(f"average_nucleotide_identity.py -i {snakemake.params.tmp} -o {snakemake.params.outdir} --workers {snakemake.threads} -m ANIb -f -v 2> {snakemake.log}") #
-    os.system(f"touch {snakemake.output.done}")
-    shutil.rmtree(snakemake.params.tmp, ignore_errors=True)
-
-else:
-    os.makedirs(snakemake.params.outdir, exist_ok=True)
-    os.system(f"touch {snakemake.output.done}")
+# run pyani
+os.system(f"average_nucleotide_identity.py -i {snakemake.params.tmp} -o {snakemake.params.outdir} --workers {snakemake.threads} -m ANIb -f -v 2> {snakemake.log}") #
+shutil.rmtree(snakemake.params.tmp, ignore_errors=True)

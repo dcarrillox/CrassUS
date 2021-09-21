@@ -14,13 +14,14 @@ rule fastani:
         "fastANI -q {input} --rl {params.fastani_list} -k 13 --fragLen 1000 "
         "--minFraction 0.1 -t {threads} -o {output} &> {log}"
 
+
 rule pyani:
     input:
         #fasta = "results/3_contigs/0_contigs/{contig}.fasta",
         #ani   = "results/6_fastani/{contig}.fastani"
         ani = rules.fastani.output
     output:
-        done = "results/7_pyani/{contig}/.done"
+        "results/7_pyani/{contig}/ANIb_alignment_coverage.tab"
     params:
         outdir = "results/7_pyani/{contig}",
         tmp = directory("results/7_pyani/{contig}_tmp")
@@ -34,13 +35,14 @@ rule pyani:
 
 rule megablast_genomes:
     input:
-        rules.pyani.output.done
+        rules.pyani.output
     output:
-        done = "results/8_megablast/{contig}/.done"
+        megablast = "results/8_megablast/{contig}.megablast",
+        tmp  = temp(directory("results/8_megablast/{contig}"))
     params:
-        pyani_dir = "results/7_pyani/{contig}",
         contigs_dir = "results/3_contigs/0_contigs",
-        refgenomes_dir = "resources/genomes",
-        outdir = "results/8_megablast/{contig}"
+        refgenomes_dir = "resources/genomes"
     script:
         "../../scripts/run_megablast.py"
+
+#rule genoplot_genomes:

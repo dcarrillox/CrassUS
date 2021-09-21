@@ -42,9 +42,6 @@ def aggregate_best_codings(wildcards):
                         )
     return best_codings + genome_tables
 
-def aggregate_pyani(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-
 def aggregate_densities(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
     prodigal_files = expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
@@ -105,7 +102,7 @@ def gather_dtr(wildcards):
 # results from several steps. "contigs" is too vague
 def aggregate_contigs(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    megablast    = expand("results/8_megablast/{contig}/.done",
+    megablast    = expand("results/8_megablast/{contig}.megablast",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     prodigal = expand("results/4_prodigal/all_codings/{contig}_{prod_ext}",
@@ -116,7 +113,7 @@ def aggregate_contigs(wildcards):
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
 
-    pyani = expand("results/7_pyani/{contig}/.done",
+    pyani = expand("results/7_pyani/{contig}/ANIb_alignment_coverage.tab",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     dtr = expand("results/3_contigs/0_contigs/{contig}.dtr_blast_done",

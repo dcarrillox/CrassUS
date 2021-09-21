@@ -19,3 +19,4 @@ envs/list.txt
 resources/genomes/*.fasta
 resources/fastANI_genomes.list
 envs/.ipynb*
+test*
