@@ -41,7 +41,9 @@ ranks = ["genus", "subfamily", "family"]
 
 for genome in genomes:
     for rank in ranks:
-        assigned_taxas = [df.loc[genome, f"{rank}_{marker}"] for marker in markers]
+        # genera & subfamily were adjusted for some ref genomes to make them monophyletic,
+        # split by "_" to get the actual name, ie. Blohavirus instead of Blohavirus_1
+        assigned_taxas = [df.loc[genome, f"{rank}_{marker}"].split("_")[0] for marker in markers]
         # remove redundancy
         assigned_taxas = list(set(assigned_taxas))
         # remove "not found" and "unknown"
