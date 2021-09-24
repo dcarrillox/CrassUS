@@ -48,8 +48,10 @@ rule megablast_genomes:
 rule genoplot_genomes:
     input:
         "results/4_prodigal/best_coding/genome_tables/.finished",
-        rules.megablast_genomes.output.megablast
+        megablast = rules.megablast_genomes.output.megablast
     output:
-        "results/9_plots/{contig}.txt"
-    shell:
-        "echo {input} > {output}"
+        "results/9_plots/{contig}.png"
+    params:
+        contigs_tables_dir = "results/4_prodigal/best_coding/genome_tables"
+    script:
+        "../../scripts/genoplotr.R"
