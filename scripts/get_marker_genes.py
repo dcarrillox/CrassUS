@@ -9,7 +9,7 @@ lines = [line.strip().split("\t") for line in open("resources/yutin_2021/all_pro
 profs_names = {line[0]:line[1] for line in lines}
 
 # parse the hmmsearch file, store hits along the profile name
-names = ["TerL", "MCP", "portal", "primase"]
+names = ["TerL", "MCP", "portal"]
 names_hits = {name:list() for name in names}
 records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
 for record in records:

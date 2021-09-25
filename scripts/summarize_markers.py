@@ -12,7 +12,7 @@ for summary_file in summary_files:
     lines = [line.strip().split("\t") for line in open(summary_file).readlines()]
     rows.append(lines[-1])
 
-columns = ["contig", "TerL", "MCP", "portal", "primase"]
+columns = ["contig", "TerL", "MCP", "portal"]
 
 df = pd.DataFrame(rows, columns=columns)
 df = df.sort_values(by="contig")
