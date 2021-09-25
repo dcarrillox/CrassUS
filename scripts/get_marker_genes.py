@@ -110,7 +110,7 @@ print(names_summary)
 ##
 with open(snakemake.output.summary, "w") as fout:
     fout.write(f"\t" + "\t".join(names) + "\n")
-    to_write = [snakemake.wildcards.prots.split("_prod")[0]]
+    to_write = [snakemake.wildcards.prots.split("_tbl-")[0]]
     to_write += [names_summary[name] for name in names]
     fout.write("\t".join(to_write) + "\n")
 

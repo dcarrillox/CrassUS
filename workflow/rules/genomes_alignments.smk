@@ -1,6 +1,6 @@
 rule fastani:
     input:
-        "results/3_contigs/0_contigs/{contig}.fasta",
+        "results/3_crass_contigs/{contig}.fasta",
     output:
         "results/6_fastani/{contig}.fastani"
     params:
@@ -17,7 +17,7 @@ rule fastani:
 
 rule pyani:
     input:
-        #fasta = "results/3_contigs/0_contigs/{contig}.fasta",
+        #fasta = "results/3_crass_contigs/{contig}.fasta",
         #ani   = "results/6_fastani/{contig}.fastani"
         ani = rules.fastani.output
     output:
@@ -40,18 +40,18 @@ rule megablast_genomes:
         megablast = "results/8_megablast/{contig}.megablast",
         tmp  = temp(directory("results/8_megablast/{contig}"))
     params:
-        contigs_dir = "results/3_contigs/0_contigs",
+        contigs_dir = "results/3_crass_contigs",
         refgenomes_dir = "resources/genomes"
     script:
         "../../scripts/run_megablast.py"
 
 rule genoplot_genomes:
     input:
-        "results/4_prodigal/best_coding/genome_tables/.finished",
+        "results/4_ORF/1_best_coding/genome_tables/.finished",
         megablast = rules.megablast_genomes.output.megablast
     output:
         "results/9_plots/{contig}.png"
     params:
-        contigs_tables_dir = "results/4_prodigal/best_coding/genome_tables"
+        contigs_tables_dir = "results/4_ORF/1_best_coding/genome_tables"
     script:
         "../../scripts/genoplotr.R"

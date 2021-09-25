@@ -9,8 +9,8 @@ def calculate_coding_density(gff_file):
     Calculates the genome density for the given GFF
     '''
     # get contig id
-    contig_id = os.path.basename(gff_file).split("_prod-")[0]
-    coding = os.path.basename(gff_file).split("_prod-")[1].replace(".gff", "")
+    contig_id = os.path.basename(gff_file).split("_tbl-")[0]
+    coding = os.path.basename(gff_file).split("_tbl-")[1].replace(".gff", "")
 
     # read GFF
     lines  = [line.strip().split("\t") for line in open(gff_file).readlines()]

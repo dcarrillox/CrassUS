@@ -5,10 +5,10 @@ rule all:
     input:
         #aggregate_best_codings,
         # gather_trees,
-        # "results/6_clustering/shared_content_matrix.txt",
+        "results/6_clustering/shared_content_matrix.txt",
         #aggregate_contigs,
-        "results/5_phylogenies/tree/taxonomic_classification_completeness.txt",
-        #"results/5_phylogenies/tree/taxonomic_classification.txt"
+        "results/5_phylogenies/taxonomic_classification_completeness.txt",
+        #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
 
 
@@ -25,7 +25,7 @@ include: "rules/genomes_alignments.smk"
 
 rule blastn:
     input:
-        "results/3_contigs/0_contigs/{contig}.fasta",
+        "results/3_crass_contigs/{contig}.fasta",
     output:
         "results/5_blast/{contig}.blast"
     threads: 4

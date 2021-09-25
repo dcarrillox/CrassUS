@@ -1,11 +1,11 @@
 rule get_marker_proteins:
     input:
         hmmtxt = rules.annotate_proteins_best_coding.output.outfile,
-        faa = "results/4_prodigal/best_coding/{prots}.faa",
-        gff = "results/4_prodigal/best_coding/{prots}.gff"
+        faa = "results/4_ORF/1_best_coding/{prots}.faa",
+        gff = "results/4_ORF/1_best_coding/{prots}.gff"
     output:
-        faa = "results/5_phylogenies/markers_scan/{prots}_markers.faa",
-        summary = "results/5_phylogenies/markers_scan/{prots}_markers.summary"
+        faa = "results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
+        summary = "results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary"
     conda:
         "../../envs/utils.yaml"
     script:
@@ -16,7 +16,7 @@ checkpoint summarize_markers:
         get_markers_files
     output:
         summary = "results/5_phylogenies/markers.summary",
-        faa_dir = directory("results/5_phylogenies/markers_faa")
+        faa_dir = directory("results/5_phylogenies/0_marker_genes/1_final")
     conda:
         "../../envs/utils.yaml"
     script:
@@ -24,43 +24,47 @@ checkpoint summarize_markers:
 
 rule multiple_sequence_alignment:
     input:
-        found = "results/5_phylogenies/markers_faa/{marker}.faa",
+        found = "results/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
         ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
     output:
-        "results/5_phylogenies/msa/{marker}.msa"
+        "results/5_phylogenies/1_MSAs/{marker}.msa"
     threads: 4
     conda:
         "../../envs/phylogenies.yaml"
+    log:
+        "logs/msa_alignment/{marker}.log"
     shell:
-        """
-        mafft --add {input.found} --thread {threads} {input.ref} > {output}
-        """
+        "mafft --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
 
 rule msa_trimming:
     input:
-        "results/5_phylogenies/msa/{marker}.msa"
+        rules.multiple_sequence_alignment.output
     output:
-        "results/5_phylogenies/msa/{marker}_trimmed.msa"
+        "results/5_phylogenies/1_MSAs/{marker}_trimmed.msa"
     conda:
         "../../envs/phylogenies.yaml"
+    log:
+        "logs/msa_trimming/{marker}.log"
     shell:
-        "trimal -in {input} -out {output} -gt 0.9"
+        "trimal -in {input} -out {output} -gt 0.9 &> {log}"
 
 rule make_trees:
     input:
-        "results/5_phylogenies/msa/{marker}_trimmed.msa"
+        rules.msa_trimming.output
     output:
-        "results/5_phylogenies/tree/{marker}_trimmed.nwk"
+        "results/5_phylogenies/2_trees/{marker}_trimmed.nwk"
     conda:
         "../../envs/phylogenies.yaml"
+    log:
+        "logs/trees/{marker}.log"
     shell:
-        "fasttree {input} > {output}"
+        "fasttree -log {log} {input} > {output}"
 
 rule measure_leaves_distances:
     input:
-        "results/5_phylogenies/tree/{marker}_trimmed.nwk"
+        rules.make_trees.output
     output:
-        "results/5_phylogenies/tree/{marker}_trimmed.dist"
+        "results/5_phylogenies/2_trees/{marker}_trimmed.dist"
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     conda:

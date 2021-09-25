@@ -12,7 +12,7 @@ crassus_contigs = df["contig"].to_list()
 #print(crassus_contigs)
 
 # get which markers underwent the analysis
-#print(snakemake.input.markers_trees)
+print(snakemake.input.markers_trees)
 markers = [os.path.basename(tree_file).split("_trimmed.nwk")[0] for tree_file in snakemake.input.markers_trees]
 markers = sorted(markers, reverse=True)
 
@@ -29,6 +29,7 @@ for contig in crassus_classification:
 for marker_tree in snakemake.input.markers_trees:
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
+    print(marker)
 
     # read crass_reference taxonomic classification
     crass_taxonomy = dict()
@@ -42,6 +43,7 @@ for marker_tree in snakemake.input.markers_trees:
 
     # read the file with the monophyletic fix for the taxonomy
     fix_file = f"resources/{marker}_fixed_monophyl_tax.txt"
+    print(fix_file)
     lines = [line.strip().split("\t") for line in open(fix_file).readlines()[1:]]  # discard header
     # go through the lines and store the change in the taxa dict from above
     for line in lines:

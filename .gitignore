@@ -1,6 +1,6 @@
 dag.pdf
 borrar*
-config/samples.tsv
+config/samples*.tsv
 data/
 logs/*
 results/
@@ -25,3 +25,4 @@ test*
 create_ref_genomes_tables.py
 .ipynb_checkpoints/
 .~lock.*
+ref_habitats.txt

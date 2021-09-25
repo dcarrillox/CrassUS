@@ -4,7 +4,7 @@ import glob,os
 # env: utils.yaml
 
 def format_faa_headers(faa_file, out_dir):
-    contig_id = os.path.basename(faa_file).split("_prod-")[0]
+    contig_id = os.path.basename(faa_file).split("_tbl-")[0]
 
     records = SeqIO.parse(faa_file, "fasta")
 
@@ -29,7 +29,7 @@ def main():
     # copy .faa files of best codings to the root folder
     best_codings = [line.strip().split("\t") for line in open(snakemake.input[0]).readlines() if line.endswith("<--\n")]
     for coding in best_codings:
-        raw_prefix = f"{snakemake.params.raw_dir}/{coding[0]}_prod-{coding[1]}"
+        raw_prefix = f"{snakemake.params.raw_dir}/{coding[0]}_tbl-{coding[1]}"
 
         # copy the .gff file
         os.system(f"cp {raw_prefix}.gff {snakemake.output[0]}")

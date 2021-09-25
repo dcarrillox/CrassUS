@@ -16,9 +16,9 @@ with open(snakemake.params.tmp_fasta, "w") as fout:
     SeqIO.write(to_write, fout, "fasta")
 
 # build blast database
-os.system(f"makeblastdb -in {snakemake.params.tmp_fasta} -out {snakemake.params.tmp_db} -dbtype nucl")
+os.system(f"makeblastdb -in {snakemake.params.tmp_fasta} -out {snakemake.params.tmp_db} -dbtype nucl -logfile {snakemake.log.makedb}")
 # run blast
 os.system(f"blastn -query {snakemake.params.tmp_fasta} -db {snakemake.params.tmp_db} \
-           -out {snakemake.output.blast} -outfmt 6")
+           -out {snakemake.output.blast} -outfmt 6 -logfile {snakemake.log.blast}")
 
 os.system(f"touch {snakemake.output.done}")

@@ -53,7 +53,7 @@ for prot in prots:
 genomes_clusters = {genome:df[genome].tolist() for genome in all_genomes}
 
 # init a dataframe, all genomes in the rows, found contigs in the columns
-contigs = sorted([os.path.basename(prot).split("_prod")[0] for prot in snakemake.input.prots_files])
+contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake.input.prots_files])
 df2 = pd.DataFrame(index=all_genomes, columns=contigs)
 df2 = df2.fillna(0)
 
