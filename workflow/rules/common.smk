@@ -95,30 +95,30 @@ def gather_dtr(wildcards):
 # results from several steps. "contigs" is too vague
 def aggregate_contigs(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    megablast    = expand("results/8_megablast/{contig}.megablast",
+    megablast    = expand("results/7_ANI/2_plot/{contig}.megablast",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     prodigal = expand("results/4_ORF/0_all_codings/{contig}_{prod_ext}",
                       contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                       prod_ext=prodigal_ext
                       )
-    fastani =  expand("results/6_fastani/{contig}.fastani",
+    fastani =  expand("results/7_ANI/0_all/{contig}.fastani",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
 
-    pyani = expand("results/7_pyani/{contig}/ANIb_alignment_coverage.tab",
+    pyani = expand("results/7_ANI/1_most_similar/{contig}/ANIb_alignment_coverage.tab",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     dtr = expand("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-    plot = expand("results/9_plots/{contig}.txt",
+    plot = expand("results/7_ANI/2_plot/{contig}.png",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     #return prodigal + pyani
     #return prodigal + fastani
     #return prodigal
-    return plot
+    return plot + fastani
 
 def get_genome_tables_finished(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
@@ -127,8 +127,3 @@ def get_genome_tables_finished(wildcards):
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         )
     return genome_tables
-
-def gather_data_genoplotr(wildcards):
-    genome_table = glob.glob(f"results/4_ORF/1_best_coding/genome_tables/{wildcards.contig}_tbl-*.table")[0]
-    megablast = f"results/8_megablast/{wildcards.contig}.megablast"
-    return [megablast, genome_table]

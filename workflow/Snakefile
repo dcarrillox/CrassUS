@@ -6,7 +6,7 @@ rule all:
         #aggregate_best_codings,
         # gather_trees,
         "results/6_clustering/shared_content_matrix.txt",
-        #aggregate_contigs,
+        aggregate_contigs,
         "results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
@@ -75,9 +75,9 @@ NOP, it is not editable enough. I need to color the ORFs for instance.
 ########
 # pyani cmd
 ########
-# blastn -out results/7_pyani/F_434_103281/blastn_output/F_434_103281_vs_Rampelli_10024_NODE_19_length_105296_cov_11.084995.blast_tab
-# -query results/7_pyani/F_434_103281/blastn_output/F_434_103281-fragments.fasta
-# -db results/7_pyani/F_434_103281/blastn_output/Rampelli_10024_NODE_19_length_105296_cov_11.084995.fasta
+# blastn -out results/7_ANI/1_most_similar/F_434_103281/blastn_output/F_434_103281_vs_Rampelli_10024_NODE_19_length_105296_cov_11.084995.blast_tab
+# -query results/7_ANI/1_most_similar/F_434_103281/blastn_output/F_434_103281-fragments.fasta
+# -db results/7_ANI/1_most_similar/F_434_103281/blastn_output/Rampelli_10024_NODE_19_length_105296_cov_11.084995.fasta
 # -xdrop_gap_final 150 -dust no -evalue 1e-15 -max_target_seqs 1
 # -outfmt '6 qseqid sseqid length mismatch pident nident qlen slen qstart qend sstart send positive ppos gaps' -task blastn
 
