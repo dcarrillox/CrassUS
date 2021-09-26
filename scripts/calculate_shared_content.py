@@ -11,12 +11,12 @@ prots = [line.strip().split("\t")[1] for line in open(snakemake.input.tsv).readl
 all_genomes = sorted(list(set([prot.split("|")[0] for prot in prots])))
 
 # sort the tsv files by number of proteins in the cluster
-os.system(f"cut -f1 {snakemake.input.tsv} | sort | uniq -c | sort -r -n > {snakemake.params.nprots_cluster}")
+os.system(f"cut -f1 {snakemake.input.tsv} | sort | uniq -c | sort -r -n > {snakemake.output.nprots}")
 
 # create an identifier for each cluster, from biggest cluster to smallest
 cluster_ids = dict()
 cont = 0
-lines = [line.strip().split(" ") for line in open(snakemake.params.nprots_cluster).readlines()]
+lines = [line.strip().split(" ") for line in open(snakemake.output.nprots).readlines()]
 for line in lines:
     if int(line[0]) > 1:
         cont += 1

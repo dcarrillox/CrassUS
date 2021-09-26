@@ -10,6 +10,7 @@ rule all:
         "results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
+        "results/6_clustering/shared_content_taxonomy.txt"
 
 
 include: "rules/assembly.smk"
@@ -19,25 +20,6 @@ include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
 include: "rules/assess_taxonomy.smk"
 include: "rules/genomes_alignments.smk"
-
-
-
-
-rule blastn:
-    input:
-        "results/3_crass_contigs/{contig}.fasta",
-    output:
-        "results/5_blast/{contig}.blast"
-    threads: 4
-    container: "library://dcarrillo/default/crassus:0.1"
-    shell:
-        "blastn -num_threads {threads} -dust no -soft_masking false "
-        "-db /data/genomes/all_genomes -out {output} -query {input} "
-        "-xdrop_gap_final 150 -evalue 1e-15 -max_target_seqs 1 -task blastn "
-        "-outfmt '6 qseqid sseqid length mismatch pident nident qlen slen qstart qend sstart send positive ppos gaps'"
-
-
-
 
 #######
 # xmatchview

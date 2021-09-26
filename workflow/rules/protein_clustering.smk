@@ -34,9 +34,8 @@ rule calculate_shared_prots:
         tsv = rules.proteins_clustering.output.tsv
     output:
         presabs = "results/6_clustering/presabs_matrix.txt",
-        shared  = "results/6_clustering/shared_content_matrix.txt"
-    params:
-        nprots_cluster = "results/6_clustering/nprots_cluster.txt"
+        shared  = "results/6_clustering/shared_content_matrix.txt",
+        nprots  = temp("results/6_clustering/nprots_cluster.txt")
     conda:
         "../../envs/utils.yaml"
     script:

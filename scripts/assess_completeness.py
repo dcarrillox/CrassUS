@@ -12,17 +12,20 @@ for dtr_file in snakemake.input.dtr_blast_done:
     blast_file = dtr_file.replace("_done", "")
     # get the genome, it will be the key of the dictionary
     genome = os.path.basename(blast_file).replace(".dtr_blast", "")
-    lines = [line.strip().split("\t") for line in open(blast_file).readlines()]
-    # discard self-hits
-    lines = [line for line in lines if line[0] != line[1]]
-    # check if query hit
-    for line in lines:
-        if "|start" in line[0] and "|end" in line[1]:
-            similarity = float(line[2])
-            aln_length = int(line[3])
-            query_start = int(line[6])
-            if similarity >= 98 and aln_length >= 20 and query_start <= 50:
-                genomes_completeness[genome] = [100, "DTR"]
+    # check it is >20Kb
+    genome_length = int(genome.split("_")[-1])
+    if genome_length >= 20000:
+        lines = [line.strip().split("\t") for line in open(blast_file).readlines()]
+        # discard self-hits
+        lines = [line for line in lines if line[0] != line[1]]
+        # check if query hit
+        for line in lines:
+            if "|start" in line[0] and "|end" in line[1]:
+                similarity = float(line[2])
+                aln_length = int(line[3])
+                query_start = int(line[6])
+                if similarity >= 98 and aln_length >= 20 and query_start <= 50:
+                    genomes_completeness[genome] = [100, "DTR"]
 
 
 

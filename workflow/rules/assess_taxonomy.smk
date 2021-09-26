@@ -44,8 +44,15 @@ rule assess_completenes:
     script:
         "../../scripts/assess_completeness.py"
 
-# rule merge_markers_and_sharing_info:
-#     input:
-#         markers_table = rules.assess_completenes.output,
-#         sharing_table = rules.calculate_shared_prots.output.shared
-#     output:
+rule protein_content_taxa:
+    input:
+        matrix_shared = rules.calculate_shared_prots.output.shared,
+        markers_table  = rules.assess_completenes.output
+    output:
+        "results/6_clustering/shared_content_taxonomy.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/taxonomy_from_clustering.py"
