@@ -17,10 +17,10 @@ $ conda activate crassus_dev
 $ git clone https://github.com/dcarrillox/crAssUS.git
 ```
 
-3) Copy the `resources` folder database from my machine.
+3) Copy the `resources` folder database from my machine (yes to overwrite "genomes.list")
 
 ```
-$ cp -r /home/danielc/projects/crAssUS/resources/genomes/ crAssUS/resources/ #yes to overwrite "genomes.list"
+$ cp -r /home/danielc/projects/crAssUS/resources/genomes/ crAssUS/resources/
 ```
 
 4) Fill `config/samples.tsv` with the paths to your metagenomes. It is a TAB delimited file, just change the paths and sample_ids:
