@@ -2,14 +2,11 @@ from ete3 import Tree
 import pandas as pd
 import os
 
-# list the contigs that were found by crAssUS.
-# crassus_contigs = [os.path.basename(file).replace(".fasta", "") for file in snakemake.input.crassus_contigs]
-# print(crassus_contigs)
+# env: phylogenies.yaml
 
-#print(snakemake.input.markers_summary)
+# list the contigs that were found by crAssUS.
 df = pd.read_csv(snakemake.input.markers_summary, sep="\t")
 crassus_contigs = df["contig"].to_list()
-#print(crassus_contigs)
 
 # get which markers underwent the analysis
 print(snakemake.input.markers_trees)
@@ -115,41 +112,6 @@ for marker_tree in snakemake.input.markers_trees:
             for leaf in genus_lca.iter_leaves():
                 if leaf.genus == "new":
                     crassus_classification[leaf.genome][f"genus_{marker}"] = genus
-
-
-
-
-    # # classify crassus contigs
-    # for leaf in t.iter_leaves():
-    #     # check if it is a new contig found by crAssUS
-    #     if leaf.genome in crassus_classification:
-    #
-    #         # family and subfamily: inspect the upper node
-    #         node = leaf.up
-    #         fam,subfam = list(), list()
-    #         for hoja in node.iter_leaves():
-    #             fam.append(hoja.family)
-    #             subfam.append(hoja.subfamily)
-    #
-    #         fam.remove("")
-    #         subfam.remove("")
-    #
-    #         fam, subfam = list(set(fam)), list(set(subfam))
-    #         if len(fam) == 1:
-    #             crassus_classification[leaf.genome][f"family_{marker}"] = fam[0]
-    #         if len(subfam) == 1:
-    #             crassus_classification[leaf.genome][f"subfamily_{marker}"] = subfam[0]
-    #
-    #         # genus: inspect the two upper nodes
-    #         node = leaf.up.up
-    #         genus = list()
-    #         for hoja in node.iter_leaves():
-    #             genus.append(hoja.genus)
-    #
-    #         genus.remove("")
-    #         genus = list(set(genus))
-    #         if len(genus) == 1:
-    #             crassus_classification[leaf.genome][f"genus_{marker}"] = genus[0]
 
 
     # check which genomes are not present in the tree and call them as "Not found"

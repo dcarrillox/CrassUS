@@ -27,7 +27,11 @@ for genome in markers_table.index.tolist():
     # remove not found and unknown. Also, remove _1 from monophyletic correction
     final_genus = list(set([genus.split("_")[0] for genus in genera if genus not in ["Not found", "unknown"]]))
     if final_genus:
-        genus_marker[genome] = final_genus[0]
+        # check that the different markers agree
+        if len(final_genus) == 1:
+            genus_marker[genome] = final_genus[0]
+        else:
+            print(f"{genome}, discrepancies at the genus level -> {final_genus}")
 
 
 to_write = list()
@@ -71,7 +75,7 @@ for query_genome in matrix_shared:
         # there are NOT similar genomes
         else:
             most_similar_genome = matrix_shared.index[0]
-            to_write.append([query_genome, "yes", 0, "", "", "",  most_similar_genome])
+            to_write.append([query_genome, "yes", 0, 0, "", "",  most_similar_genome])
 
     # query_genome is not complete
     else:
