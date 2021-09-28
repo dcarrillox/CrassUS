@@ -7,11 +7,12 @@ rule all:
         # gather_trees,
         #"results/6_clustering/shared_content_matrix.txt",
         aggregate_contigs,
-        #"results/5_phylogenies/taxonomic_classification_completeness.txt",
+        "results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
         "results/6_clustering/shared_content_taxonomy.txt"
         #"results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
+        #"results/7_ANI/2_plot/.gggenomes_done"
 
 
 include: "rules/assembly.smk"
@@ -22,17 +23,6 @@ include: "rules/protein_clustering.smk"
 include: "rules/assess_taxonomy.smk"
 include: "rules/genomes_alignments.smk"
 
-#######
-# xmatchview
-#######
-
-'''
-1) Download .tar with the release, contains test data
-2) Clone the repository too, it contains the .ttf files
-3)
-
-NOP, it is not editable enough. I need to color the ORFs for instance.
-'''
 
 ### TerL MSA ###
 # MAFFT can add a sequence(s) to an existing MSA via the --add option
@@ -44,10 +34,6 @@ NOP, it is not editable enough. I need to color the ORFs for instance.
 #      After my meeting with Bas (26/08/2021), I go with this option not only for the
 #      TerL tree but for the whole reference of genomes and proteins.
 
-
-########
-# genoplotR (R package)
-########
 
 ########
 # split heatmap
