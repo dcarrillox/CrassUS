@@ -14,7 +14,6 @@ rule fastani:
         "fastANI -q {input} --rl {params.fastani_list} -k 13 --fragLen 1000 "
         "--minFraction 0.1 -t {threads} -o {output} &> {log}"
 
-
 rule pyani:
     input:
         #fasta = "results/3_crass_contigs/{contig}.fasta",
@@ -42,18 +41,32 @@ rule megablast_genomes:
     params:
         contigs_dir = "results/3_crass_contigs",
         refgenomes_dir = "resources/genomes"
+    conda:
+        "../../envs/compare_genomes.yaml"
     script:
         "../../scripts/run_megablast.py"
 
-rule genoplot_genomes:
+# rule install_gggenomes:
+#     output:
+#         "results/7_ANI/2_plot/.gggenomes_done"
+#     conda:
+#         "../../envs/plot_genomes.yaml"
+#     script:
+#         "../../scripts/install_gggenomes.R"
+#
+#
+rule plot_gggenomes:
     input:
         "results/4_ORF/2_functional_annot_tables/.finished",
-        megablast = rules.megablast_genomes.output.megablast
+        megablast = rules.megablast_genomes.output.megablast,
     output:
         "results/7_ANI/2_plot/{contig}.png"
     params:
-        contigs_tables_dir = "results/4_ORF/2_functional_annot_tables"
+        contigs_tables_dir = "results/4_ORF/2_functional_annot_tables/",
+        reference_tables_dir = "resources/genomes/"
+    # conda:
+    #     "../../envs/plot_genomes.yaml"
     # script:
-    #     "../../scripts/genoplotr.R"
+    #     "../../scripts/plot_gggenomes.R"
     shell:
         "touch {output}"

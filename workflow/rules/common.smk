@@ -118,7 +118,7 @@ def aggregate_contigs(wildcards):
     #return prodigal + pyani
     #return prodigal + fastani
     #return prodigal
-    return plot + fastani
+    return plot
 
 def get_genome_tables_finished(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]

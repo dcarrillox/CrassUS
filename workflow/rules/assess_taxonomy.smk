@@ -56,3 +56,21 @@ rule protein_content_taxa:
         "../../envs/phylogenies.yaml"
     script:
         "../../scripts/taxonomy_from_clustering.py"
+
+# rule aggregate_taxa:
+#     input:
+#         #markers_trees = gather_trees,
+#         markers_trees = [
+#                          "results/5_phylogenies/2_trees/TerL_trimmed.nwk",
+#                          "results/5_phylogenies/2_trees/MCP_trimmed.nwk",
+#                          "results/5_phylogenies/2_trees/portal_trimmed.nwk",
+#                         ],
+#         taxa_shared = rules.protein_content_taxa.output
+#     output:
+#         "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
+#     params:
+#         taxonomy = "resources/crass_taxonomy.txt"
+#     conda:
+#         "../../envs/phylogenies.yaml"
+#     script:
+#         "../../scripts/protshared_taxa_to_trees.py"
