@@ -60,14 +60,14 @@ rule make_trees:
     shell:
         "fasttree -log {log} {input} > {output}"
 
-rule measure_leaves_distances:
-    input:
-        rules.make_trees.output
-    output:
-        "results/5_phylogenies/2_trees/{marker}_trimmed.dist"
-    params:
-        taxonomy = "resources/crass_taxonomy.txt"
-    conda:
-        "../../envs/phylogenies.yaml"
-    script:
-        "../../scripts/measure_leaves_distances.py"
+# rule measure_leaves_distances:
+#     input:
+#         rules.make_trees.output
+#     output:
+#         "results/5_phylogenies/2_trees/{marker}_trimmed.dist"
+#     params:
+#         taxonomy = "resources/crass_taxonomy.txt"
+#     conda:
+#         "../../envs/phylogenies.yaml"
+#     script:
+#         "../../scripts/measure_leaves_distances.py"

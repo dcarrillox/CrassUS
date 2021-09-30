@@ -1,3 +1,4 @@
+yutin_trees/
 dag.pdf
 borrar*
 config/samples*.tsv
@@ -21,8 +22,8 @@ resources/genomes/*.table
 resources/fastANI_genomes.list
 envs/.ipynb*
 test*
-*R*
 create_ref_genomes_tables.py
 .ipynb_checkpoints/
 .~lock.*
 ref_habitats.txt
+Rplot*
