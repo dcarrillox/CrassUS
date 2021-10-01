@@ -54,11 +54,17 @@ for query_genome in matrix_shared:
                 if shared07_genome in reference_taxonomy:
                     shared_genera.append(reference_taxonomy[shared07_genome]["genus"])
                 # otherwise, check if the genome obtained genus marker
-                if shared07_genome in genus_marker:
+                elif shared07_genome in genus_marker:
                     shared_genera.append(genus_marker[shared07_genome])
+
 
             genera = list(set(shared_genera))
             n_genera = len(genera)
+
+            # if not similar genus was found, set it as "new_genus"
+            if not genera:
+                genera = ["new_genus"]
+
             # get the most similar genome
             most_similar_genome = matrix_shared.index[0]
             if most_similar_genome in reference_taxonomy:
@@ -75,7 +81,7 @@ for query_genome in matrix_shared:
         # there are NOT similar genomes
         else:
             most_similar_genome = matrix_shared.index[0]
-            to_write.append([query_genome, "yes", 0, 0, "", "",  most_similar_genome])
+            to_write.append([query_genome, "yes", 0, 0, "new_genus", "new_genus",  most_similar_genome])
 
     # query_genome is not complete
     else:

@@ -4,8 +4,8 @@ rule run_DTR_blast:
     output:
         temp(multiext("results/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
         blast = "results/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
-        done = temp("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done")
-        #done = "results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
+        #done = temp("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done")
+        done = "results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
     params:
         tmp_fasta = "results/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
         tmp_db = "results/3_crass_contigs/dtr_blast/{contig}.dtr_db"
@@ -57,20 +57,22 @@ rule protein_content_taxa:
     script:
         "../../scripts/taxonomy_from_clustering.py"
 
-# rule aggregate_taxa:
-#     input:
-#         #markers_trees = gather_trees,
-#         markers_trees = [
-#                          "results/5_phylogenies/2_trees/TerL_trimmed.nwk",
-#                          "results/5_phylogenies/2_trees/MCP_trimmed.nwk",
-#                          "results/5_phylogenies/2_trees/portal_trimmed.nwk",
-#                         ],
-#         taxa_shared = rules.protein_content_taxa.output
-#     output:
-#         "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/protshared_taxa_to_trees.py"
+rule aggregate_taxa_sources:
+    input:
+        markers_trees = gather_trees,
+        taxa_markers  = rules.assess_completenes.output,
+        # markers_trees = [
+        #                  "results/5_phylogenies/2_trees/TerL_trimmed.nwk",
+        #                  "results/5_phylogenies/2_trees/MCP_trimmed.nwk",
+        #                  "results/5_phylogenies/2_trees/portal_trimmed.nwk",
+        #                 ],
+        taxa_shared = rules.protein_content_taxa.output
+    output:
+        "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt",
+        lengths = "resources/taxas_average_length.txt"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/protshared_taxa_to_trees.py"
