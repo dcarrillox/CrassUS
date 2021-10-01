@@ -6,12 +6,12 @@ rule all:
         #aggregate_best_codings,
         # gather_trees,
         #"results/6_clustering/shared_content_matrix.txt",
-        aggregate_contigs,
-        "results/5_phylogenies/taxonomic_classification_completeness.txt",
+        #aggregate_contigs,
+        #"results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
-        "results/6_clustering/shared_content_taxonomy.txt"
-        #"results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
+        #"results/6_clustering/shared_content_taxonomy.txt"
+        "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
         #"results/7_ANI/2_plot/.gggenomes_done"
 
 

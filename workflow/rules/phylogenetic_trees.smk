@@ -34,7 +34,7 @@ rule multiple_sequence_alignment:
     log:
         "logs/msa_alignment/{marker}.log"
     shell:
-        "mafft --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
+        "time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
 
 rule msa_trimming:
     input:
