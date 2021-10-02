@@ -38,6 +38,9 @@ to_write = list()
 # get complete genomes according to markers (completeness) table
 complete_genomes = markers_table[markers_table["completeness"] >= 90].index.tolist()
 
+# shared cuttof for genus delimitation
+shared_genus_cuttof = float(snakemake.config["shared_genus_cuttof"])
+
 # find out which (complete) genomes share >70% with any other genome
 for query_genome in matrix_shared:
     # query_genome is complete
@@ -45,7 +48,7 @@ for query_genome in matrix_shared:
         # sort the df by the values for this query genome
         matrix_shared = matrix_shared.sort_values(query_genome, ascending=False)
         # get genomes >70%
-        shared07_genomes = matrix_shared[matrix_shared[query_genome] > 0.70].index.tolist()
+        shared07_genomes = matrix_shared[matrix_shared[query_genome] >= shared_genus_cuttof].index.tolist()
         # there are similar genomes
         if shared07_genomes:
             shared_genera = list()
@@ -65,23 +68,20 @@ for query_genome in matrix_shared:
             if not genera:
                 genera = ["new_genus"]
 
-            # get the most similar genome
-            most_similar_genome = matrix_shared.index[0]
-            if most_similar_genome in reference_taxonomy:
-                most_similar_genus = reference_taxonomy[most_similar_genome]["genus"]
-            elif most_similar_genome in genus_marker:
-                most_similar_genus = genus_marker[most_similar_genome]
-            else:
-                most_similar_genus = ""
+            # get the most similar genome in the reference, so it has genus
+            most_similar_genus = "new_genus"
+            for shared07_genome in shared07_genomes:
+                if shared07_genome in reference_taxonomy:
+                    most_similar_genus = reference_taxonomy[shared07_genome]["genus"]
+                    break
 
-            to_write.append([query_genome, "yes", len(shared07_genomes), n_genera, ",".join(genera), most_similar_genus, most_similar_genome])
+            to_write.append([query_genome, "yes", len(shared07_genomes), n_genera, ",".join(genera), most_similar_genus, ",".join(shared07_genomes)])
 
 
 
         # there are NOT similar genomes
         else:
-            most_similar_genome = matrix_shared.index[0]
-            to_write.append([query_genome, "yes", 0, 0, "new_genus", "new_genus",  most_similar_genome])
+            to_write.append([query_genome, "yes", 0, 0, "new_genus", "new_genus",  ",".join(shared07_genomes)])
 
     # query_genome is not complete
     else:
@@ -91,7 +91,7 @@ for query_genome in matrix_shared:
 
 
 # create df and write to file
-columns = ["genome", "complete", "n_shared70", "n_genera", "genera", "most_similar_genus", "most_similar_genome"]
+columns = ["genome", "complete", "n_shared70", "n_genera", "genera", "most_similar_genus", "most_similar_genomes"]
 to_write_df = pd.DataFrame(to_write, columns=columns)
 #print(to_write_df)
 to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")

@@ -6,8 +6,8 @@ import os
 
 # read taxa assignments by shared proteins
 shared_taxa = pd.read_csv(snakemake.input.taxa_shared[0], sep="\t", header=0, index_col=0)
-# keep only complete genomes with 0 or 1 genus assigned.
-shared_taxa = shared_taxa.loc[(shared_taxa["complete"] == "yes") & (shared_taxa["n_genera"] <= 1)]
+# keep only complete genomes
+shared_taxa = shared_taxa[shared_taxa["complete"] == "yes"]
 
 # read genera's lengths to recalculate later the coverage of the newly classified genomes
 lines = [line.strip().split() for line in open(snakemake.params.lengths).readlines()]
@@ -56,7 +56,7 @@ for marker_tree in snakemake.input.markers_trees:
 
             # check if the genome is complete and was annotated with any other genus
             if genome in shared_taxa.index:
-                shared_taxa_genome = shared_taxa.loc[genome, "genera"]
+                shared_taxa_genome = shared_taxa.loc[genome, "most_similar_genus"]
 
                 # shared and markers agree
                 if shared_taxa_genome == marker_taxa_genome:
@@ -109,9 +109,11 @@ for marker_tree in snakemake.input.markers_trees:
     t.set_outgroup(outgs_lca)
 
     for genus in genera:
+        print(genus)
         lcas = t.get_monophyletic(values=[genus, "unknown"], target_attr="genus")
         # if monophyletic clades containing genus and new genomes were found, iterate them
         if lcas:
+            print(lcas)
             # iterate the lcas
             for lca in lcas:
                 genus_leaves = lca.search_nodes(genus=genus)

@@ -27,3 +27,4 @@ create_ref_genomes_tables.py
 .~lock.*
 ref_habitats.txt
 Rplot*
+mafft_test*

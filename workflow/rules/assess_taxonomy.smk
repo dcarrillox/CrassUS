@@ -61,11 +61,6 @@ rule aggregate_taxa_sources:
     input:
         markers_trees = gather_trees,
         taxa_markers  = rules.assess_completenes.output,
-        # markers_trees = [
-        #                  "results/5_phylogenies/2_trees/TerL_trimmed.nwk",
-        #                  "results/5_phylogenies/2_trees/MCP_trimmed.nwk",
-        #                  "results/5_phylogenies/2_trees/portal_trimmed.nwk",
-        #                 ],
         taxa_shared = rules.protein_content_taxa.output
     output:
         "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
@@ -76,3 +71,17 @@ rule aggregate_taxa_sources:
         "../../envs/phylogenies.yaml"
     script:
         "../../scripts/protshared_taxa_to_trees.py"
+
+rule assess_new_genera:
+    input:
+        markers_trees = gather_trees,
+        taxa_markers  = rules.aggregate_taxa_sources.output,
+        taxa_shared = rules.protein_content_taxa.output
+    output:
+        "results/5_phylogenies/taxonomic_classification_completeness_protshared_newgen.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/assess_new_genera.py"
