@@ -85,3 +85,16 @@ rule assess_new_genera:
         "../../envs/phylogenies.yaml"
     script:
         "../../scripts/assess_new_genera.py"
+
+rule assess_species:
+    input:
+        pyani = get_pyani,
+        taxa_table = rules.assess_new_genera.output
+    output:
+        "results/7_ANI/taxonomic_classification_completeness_protshared_newgen_species.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/utils.yaml"
+    script:
+        "../../scripts/assess_species.py"

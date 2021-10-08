@@ -22,23 +22,38 @@ checkpoint summarize_markers:
     script:
         "../../scripts/summarize_markers.py"
 
-rule multiple_sequence_alignment:
-    input:
-        found = "results/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
-        ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
-    output:
-        "results/5_phylogenies/1_MSAs/{marker}.msa"
-    threads: 4
-    conda:
-        "../../envs/phylogenies.yaml"
-    log:
-        "logs/msa_alignment/{marker}.log"
-    shell:
-        "time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
+if config["mafft_msa"]["einsi"]:
+    rule multiple_sequence_alignment_einsi:
+        input:
+            found = "results/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
+            ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
+        output:
+            "results/5_phylogenies/1_MSAs/{marker}.msa"
+        threads: 9999
+        conda:
+            "../../envs/phylogenies.yaml"
+        log:
+            "logs/msa_alignment/{marker}.log"
+        shell:
+            "time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
+else:
+    rule multiple_sequence_alignment_fftnsi:
+        input:
+            found = "results/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
+            ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
+        output:
+            "results/5_phylogenies/1_MSAs/{marker}.msa"
+        threads: 9999
+        conda:
+            "../../envs/phylogenies.yaml"
+        log:
+            "logs/msa_alignment/{marker}.log"
+        shell:
+            "time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
 
 rule msa_trimming:
     input:
-        rules.multiple_sequence_alignment.output
+        "results/5_phylogenies/1_MSAs/{marker}.msa"
     output:
         "results/5_phylogenies/1_MSAs/{marker}_trimmed.msa"
     conda:

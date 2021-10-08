@@ -6,7 +6,8 @@ import shutil
 # read with pandas while sorting by cov
 df = pd.read_csv(snakemake.input.ani[0], sep="\t", header=None,
                 names=["query", "ref", "ani", "cov", "total"]).sort_values(
-                "cov", ascending=False, ignore_index=True)
+                ["cov", "ani"], ascending=[False, False], ignore_index=True)
+
 # get query and top 5 covered refs
 query = df["query"][0]
 refs   = df["ref"].to_list()
@@ -15,7 +16,7 @@ if len(refs) > 5:
     refs = refs[:5]
 
 # check that query contig is one of the top refs. This is not always the case, specially
-# at short contigs that get highly covered by itself but also by other longer contigs
+# at short contigs that are highly covered by itself but also by other longer contigs
 if query not in refs:
     refs.insert(0,query)
 

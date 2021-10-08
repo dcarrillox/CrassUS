@@ -9,15 +9,13 @@ rule fastani:
     conda:
         "../../envs/compare_genomes.yaml"
     log:
-        "results/7_ANI/0_all/{contig}.log"
+        "logs/fastani/{contig}.log"
     shell:
         "fastANI -q {input} --rl {params.fastani_list} -k 13 --fragLen 1000 "
         "--minFraction 0.1 -t {threads} -o {output} &> {log}"
 
 rule pyani:
     input:
-        #fasta = "results/3_crass_contigs/{contig}.fasta",
-        #ani   = "results/7_ANI/0_all/{contig}.fastani"
         ani = rules.fastani.output
     output:
         "results/7_ANI/1_most_similar/{contig}/ANIb_alignment_coverage.tab"
@@ -28,7 +26,7 @@ rule pyani:
         "../../envs/compare_genomes.yaml"
     threads: 4
     log:
-        "results/7_ANI/1_most_similar/{contig}/{contig}.log"
+        "logs/pyani/{contig}.log"
     script:
         "../../scripts/run_pyani.py"
 

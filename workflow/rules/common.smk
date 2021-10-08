@@ -93,31 +93,12 @@ def gather_dtr(wildcards):
 
 # the name of this function needs to be different and make clear that it aggregates
 # results from several steps. "contigs" is too vague
-def aggregate_contigs(wildcards):
+def get_plots(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    megablast    = expand("results/7_ANI/2_plot/{contig}.megablast",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-    prodigal = expand("results/4_ORF/0_all_codings/{contig}_{prod_ext}",
-                      contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                      prod_ext=prodigal_ext
-                      )
-    fastani =  expand("results/7_ANI/0_all/{contig}.fastani",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
 
-    pyani = expand("results/7_ANI/1_most_similar/{contig}/ANIb_alignment_coverage.tab",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-    dtr = expand("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
     plot = expand("results/7_ANI/2_plot/{contig}.png",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-    #return prodigal + pyani
-    #return prodigal + fastani
-    #return prodigal
     return plot
 
 def get_genome_tables_finished(wildcards):
@@ -127,3 +108,10 @@ def get_genome_tables_finished(wildcards):
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         )
     return genome_tables
+
+def get_pyani(wildcards):
+    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
+    pyani = expand("results/7_ANI/1_most_similar/{contig}/ANIb_alignment_coverage.tab",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
+    return pyani
