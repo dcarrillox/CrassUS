@@ -1,7 +1,7 @@
 sample_sheet: config/samples_all.tsv
 
 mafft_msa:
-  einsi: True
+  einsi: False
 
 phylogenies:
   TerL: True

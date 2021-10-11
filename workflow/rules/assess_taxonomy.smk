@@ -23,7 +23,8 @@ rule parse_trees:
         markers_summary = "results/5_phylogenies/markers.summary"
     output:
         #temp("results/5_phylogenies/2_trees/taxonomic_classification.txt")
-        "results/5_phylogenies/2_trees/taxonomic_classification.txt"
+        round1 = "results/5_phylogenies/2_trees/taxonomic_classification_round1.txt",
+        round2 = "results/5_phylogenies/2_trees/taxonomic_classification_round2.txt"
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     conda:
@@ -33,7 +34,7 @@ rule parse_trees:
 
 rule assess_completenes:
     input:
-        taxa_markers = rules.parse_trees.output,
+        taxa_markers = rules.parse_trees.output.round2,
         dtr_blast_done = gather_dtr
     output:
         "results/5_phylogenies/taxonomic_classification_completeness.txt"
