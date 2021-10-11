@@ -114,59 +114,6 @@ for marker_tree in snakemake.input.markers_trees:
                         if leaf.genus == "new":
                             crassus_classification[leaf.genome][f"genus_{marker}"] = genus
 
-
-
-
-
-    # for subfam in subfamilies:
-    # # get all the leaves
-    #     subfam_leaves = t.search_nodes(subfamily=subfam)
-    #     if len(subfam_leaves) > 1:
-    #         subfam_lca = t.get_common_ancestor(subfam_leaves)
-    #         # check if it is a monophyletic clade
-    #         if not check_monophyletic_subfamily(subfam_lca, subfam):
-    #             # name inner nodes
-    #             cont = 0
-    #             for node in subfam_lca.traverse():
-    #                 if not node.is_leaf():
-    #                     node.name = f"node_{cont}"
-    #                     cont += 1
-    #             # get the monophyletic clades
-    #             monophyletic_clades = get_monophyletic_subfamily(subfam_lca, subfam)
-    #         else:
-    #             monophyletic_clades = subfam_lca
-    #
-    #         # iterate the monophyletic clades while assigning taxonomy
-    #         for monophyletic_clade in monophyletic_clades:
-    #             for leaf in monophyletic_clade.iter_leaves():
-    #                 if leaf.subfamily == "new":
-    #                     crassus_classification[leaf.genome][f"subfamily_{marker}"] = subfam
-    #
-    # for genus in genera:
-    # # get all the leaves
-    #     genus_leaves = t.search_nodes(genus=genus)
-    #     if len(genus_leaves) > 1:
-    #         genus_lca = t.get_common_ancestor(genus_leaves)
-    #         # check if it is a monophyletic clade
-    #         if not check_monophyletic_genus(genus_lca, genus):
-    #             # name inner nodes
-    #             cont = 0
-    #             for node in genus_lca.traverse():
-    #                 if not node.is_leaf():
-    #                     node.name = f"node_{cont}"
-    #                     cont += 1
-    #             # get the monophyletic clades
-    #             monophyletic_clades = get_monophyletic_genus(genus_lca, genus)
-    #         else:
-    #             monophyletic_clades = genus_lca
-    #
-    #         # iterate the monophyletic clades while assigning taxonomy
-    #         for monophyletic_clade in monophyletic_clades:
-    #             for leaf in monophyletic_clade.iter_leaves():
-    #                 if leaf.genus == "new":
-    #                     crassus_classification[leaf.genome][f"genus_{marker}"] = genus
-
-
     # check which genomes are not present in the tree and call them as "Not found"
     # for that marker
     for genome in crassus_contigs:
