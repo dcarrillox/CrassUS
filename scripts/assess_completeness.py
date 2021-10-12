@@ -6,8 +6,8 @@ import os
 # start by parsing the DTR results
 # input is the mock .dtr_blast_done file, the actual file is .dtr_blast
 # only DTR genomes will be in the dictionary
-# init them with the last value (the highest rank classified) as NaN. If there was
-# a taxonomic assignment it will replace the NaN
+# init them with the last value (the highest rank classified) as "unkwnown". If there
+# is a taxonomic assignment it will replace the "unknown" flag
 genomes_completeness = dict()
 for dtr_file in snakemake.input.dtr_blast_done:
     # grab the actual blast file
@@ -27,7 +27,7 @@ for dtr_file in snakemake.input.dtr_blast_done:
                 aln_length = int(line[3])
                 query_start = int(line[6])
                 if similarity >= 98 and aln_length >= 20 and query_start <= 50:
-                    genomes_completeness[genome] = [100, "DTR", "NaN"]
+                    genomes_completeness[genome] = [100, "DTR", "unknown"]
 
 
 

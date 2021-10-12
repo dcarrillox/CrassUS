@@ -44,7 +44,7 @@ to_write = list()
 complete_genomes = markers_table[(markers_table.completeness >= 90) & (markers_table.highest_taxa.notnull())].index.tolist()
 
 # shared cuttof for genus delimitation
-shared_genus_cuttof = float(snakemake.config["shared_genus_cuttof"])
+shared_genus_cutoff = float(snakemake.config["shared_genus_cutoff"])
 
 # find out which (complete) genomes share >70% with any other genome
 for query_genome in matrix_shared:
@@ -53,7 +53,7 @@ for query_genome in matrix_shared:
         # sort the df by the values for this query genome
         matrix_shared = matrix_shared.sort_values(query_genome, ascending=False)
         # get genomes >70%
-        shared07_genomes = matrix_shared[matrix_shared[query_genome] >= shared_genus_cuttof].index.tolist()
+        shared07_genomes = matrix_shared[matrix_shared[query_genome] >= shared_genus_cutoff].index.tolist()
         # there are similar genomes
         if shared07_genomes:
             shared_genera = list()

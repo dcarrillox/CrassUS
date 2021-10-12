@@ -73,6 +73,23 @@ rule aggregate_taxa_sources:
     script:
         "../../scripts/protshared_taxa_to_trees.py"
 
+rule assess_unknown_genomes:
+    input:
+        markers_trees = gather_trees,
+        taxa_assessments = rules.aggregate_taxa_sources.output,
+        genome_tables = rules.genome_tables_finished.output,
+        sharing_percentages = rules.calculate_shared_prots.output.shared
+    output:
+        "results/5_phylogenies/unknown_genomes.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt",
+        geno_tables_dir = "results/4_ORF/2_functional_annot_tables"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/assess_unknown_genomes.py"
+
+
 rule assess_new_genera:
     input:
         markers_trees = gather_trees,
