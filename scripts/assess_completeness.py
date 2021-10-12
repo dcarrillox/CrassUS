@@ -91,7 +91,18 @@ for genome in genomes:
     if genome not in genomes_completeness:
         df.loc[genome, "completeness"] = "NaN"
         df.loc[genome, "reference_level"] = "NaN"
-        df.loc[genome, "highest_taxa"] = "NaN"
+        # check if the genome was classified as unknown, or it could not be classified
+        # because of the lack of markers to do it
+        unknown = False
+        for marker in markers:
+            if df.loc[genome, f"family_{marker}"] == "unknown":
+                unknown = True
+
+        if unknown:
+            df.loc[genome, "highest_taxa"] = "unknown"
+        else:
+            df.loc[genome, "highest_taxa"] = "NaN"
+
     else:
         df.loc[genome, "completeness"] = genomes_completeness[genome][0]
         df.loc[genome, "reference_level"] = genomes_completeness[genome][1]

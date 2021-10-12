@@ -18,14 +18,19 @@ markers_table = pd.read_csv(snakemake.input.markers_table[0], sep="\t", header=0
 markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.config["phylogenies"][marker]]
 # store in a dict the genomes that got genus marker classification. For this, iterate
 # the rows and check the content of "genus_MARKER" columns
+no_taxa_assigned = ["Not found",
+                    "truncated",
+                    "wrong strands, check func. annot",
+                    "multiple copies",
+                    "unknown"]
 genus_marker = dict()
 genus_marker_columns = [f"genus_{marker}" for marker in markers]
-for genome in markers_table.index.tolist():
+for genome in markers_table.index:
     genera = list()
     for column in genus_marker_columns:
         genera.append(markers_table.loc[genome, column])
     # remove not found and unknown. Also, remove _1 from monophyletic correction
-    final_genus = list(set([genus.split("_")[0] for genus in genera if genus not in ["Not found", "unknown"]]))
+    final_genus = list(set([genus.split("_")[0] for genus in genera if genus not in no_taxa_assigned]))
     if final_genus:
         # check that the different markers agree
         if len(final_genus) == 1:
@@ -35,8 +40,8 @@ for genome in markers_table.index.tolist():
 
 
 to_write = list()
-# get complete genomes according to markers (completeness) table
-complete_genomes = markers_table[markers_table["completeness"] >= 90].index.tolist()
+# get complete AND classified genomes according to markers (completeness) table
+complete_genomes = markers_table[(markers_table.completeness >= 90) & (markers_table.highest_taxa.notnull())].index.tolist()
 
 # shared cuttof for genus delimitation
 shared_genus_cuttof = float(snakemake.config["shared_genus_cuttof"])
