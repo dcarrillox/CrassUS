@@ -7,15 +7,16 @@ rule all:
         # gather_trees,
         #"results/6_clustering/shared_content_matrix.txt",
         #get_plots,
-        #"results/5_phylogenies/taxonomic_classification_completeness.txt",
+        "results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
-        #"results/6_clustering/shared_content_taxonomy.txt"
-        #"results/5_phylogenies/taxonomic_classification_completeness_protshared.txt",
+        "results/6_clustering/shared_content_taxonomy.txt",
+        "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt",
+        "results/5_phylogenies/unknown_genomes.txt",
         #"results/7_ANI/2_plot/.gggenomes_done"
-        "results/5_phylogenies/taxonomic_classification_completeness_protshared_newgen.txt",
+        #"results/5_phylogenies/taxonomic_classification_completeness_protshared_newgen.txt",
         #"results/7_ANI/taxonomic_classification_completeness_protshared_newgen_species.txt",
-        get_pyani
+        #get_pyani
 
 
 include: "rules/assembly.smk"

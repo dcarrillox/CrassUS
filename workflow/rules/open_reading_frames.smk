@@ -94,6 +94,7 @@ rule genome_tables_finished:
     input:
         get_genome_tables_finished
     output:
-        temp("results/4_ORF/2_functional_annot_tables/.finished")
+        #temp("results/4_ORF/2_functional_annot_tables/.finished"),
+        "results/4_ORF/2_functional_annot_tables/.finished"
     shell:
         "touch {output}"

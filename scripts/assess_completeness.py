@@ -6,6 +6,8 @@ import os
 # start by parsing the DTR results
 # input is the mock .dtr_blast_done file, the actual file is .dtr_blast
 # only DTR genomes will be in the dictionary
+# init them with the last value (the highest rank classified) as "unkwnown". If there
+# is a taxonomic assignment it will replace the "unknown" flag
 genomes_completeness = dict()
 for dtr_file in snakemake.input.dtr_blast_done:
     # grab the actual blast file
@@ -25,7 +27,7 @@ for dtr_file in snakemake.input.dtr_blast_done:
                 aln_length = int(line[3])
                 query_start = int(line[6])
                 if similarity >= 98 and aln_length >= 20 and query_start <= 50:
-                    genomes_completeness[genome] = [100, "DTR"]
+                    genomes_completeness[genome] = [100, "DTR", "unknown"]
 
 
 
@@ -34,7 +36,7 @@ lines = [line.strip().split("\t") for line in open(snakemake.params.lengths).rea
 taxas_lengths = {line[0]:float(line[1]) for line in lines}
 
 # read taxa assignment from the trees
-df = pd.read_csv(snakemake.input.taxa_markers[0], sep="\t", index_col = 0)
+df = pd.read_csv(snakemake.input.taxa_markers, sep="\t", index_col = 0)
 # get the markers from config
 markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.config["phylogenies"][marker]]
 # get the genomes
@@ -49,15 +51,20 @@ for genome in genomes:
         assigned_taxas = [df.loc[genome, f"{rank}_{marker}"].split("_")[0] for marker in markers]
         # remove redundancy
         assigned_taxas = list(set(assigned_taxas))
-        # remove "not found" and "unknown"
-        if "Not found" in assigned_taxas:
-            assigned_taxas.remove("Not found")
-        if "unknown" in assigned_taxas:
-            assigned_taxas.remove("unknown")
+        # remove non taxonomic assignments
+        no_taxa_assigned = ["Not found",
+                            "truncated",
+                            "wrong strands, check func. annot",
+                            "multiple copies",
+                            "unknown"]
+        for reason in no_taxa_assigned:
+            if reason in assigned_taxas:
+                assigned_taxas.remove(reason)
+
+
         # if at the end there is a taxa assigned, use it
         # check if it is more than one tho
         if assigned_taxas:
-
             if len(assigned_taxas) == 1:
                 # this is the assigned taxonomy by the marker tree
                 # get the average length for it
@@ -65,29 +72,41 @@ for genome in genomes:
                 genome_len = int(genome.split("_")[-1])
                 if genome not in genomes_completeness:
                     compl_value = round((genome_len*100)/ref_len, 2)
-                    #genomes_completeness[genome] = float(genome_len/ref_len)
-                    genomes_completeness[genome] = [compl_value, assigned_taxas[0]]
-                break
+                    genomes_completeness[genome] = [compl_value, assigned_taxas[0], assigned_taxas[0]]
+                    break
+                # the genome is already in the dictioary because it was DTR.
+                # get its highest taxa here
+                else:
+                    genomes_completeness[genome][2] = assigned_taxas[0]
             else:
                 print(genome, f"discrepancies between the different markers at the {rank} level.")
 
 
 #
-df.insert(0, 'reference',"")
+df.insert(0, 'highest_taxa',"")
+df.insert(0, 'reference_level',"")
 df.insert(0, 'completeness',"")
 
 for genome in genomes:
     if genome not in genomes_completeness:
         df.loc[genome, "completeness"] = "NaN"
-        df.loc[genome, "reference"] = "NaN"
+        df.loc[genome, "reference_level"] = "NaN"
+        # check if the genome was classified as unknown, or it could not be classified
+        # because of the lack of markers to do it
+        unknown = False
+        for marker in markers:
+            if df.loc[genome, f"family_{marker}"] == "unknown":
+                unknown = True
+
+        if unknown:
+            df.loc[genome, "highest_taxa"] = "unknown"
+        else:
+            df.loc[genome, "highest_taxa"] = "NaN"
+
     else:
         df.loc[genome, "completeness"] = genomes_completeness[genome][0]
-        df.loc[genome, "reference"] = genomes_completeness[genome][1]
+        df.loc[genome, "reference_level"] = genomes_completeness[genome][1]
+        df.loc[genome, "highest_taxa"] = genomes_completeness[genome][2]
 
 
-print(df)
 df.to_csv(snakemake.output[0], sep="\t", index=True)
-
-
-#with open(snakemake.output[0], "w") as fout:
-#os.system(f"touch {snakemake.output[0]}")
