@@ -31,3 +31,4 @@ mafft_test*
 .Rhistory
 bas_ggtree.R
 tree_fig*.svg
+*.png

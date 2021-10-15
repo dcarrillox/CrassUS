@@ -42,7 +42,7 @@ for genome, similars in genomes_similars.items():
         new_genera[f"new_genus_{cont}"] = all_queries
 
 
-# create another dict from the previous one, k=genome  v=new_genus. It will easier
+# create another dict from the previous one, k=genome  v=new_genus. It will be easier
 # later when annotating the tree
 del new_genera["new_genus_0"]
 genomes_new_genus = dict()
@@ -60,20 +60,20 @@ for genome, new_genus in genomes_new_genus.items():
         print(f"Watch out! Genome {genome} has been assigned to two different new genera {new_genus}.")
 
 
+# read crass_reference taxonomic classification
+crass_taxonomy = dict()
+lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()]
+for line in lines:
+    crass_taxonomy[line[0]] = {
+                               "family":line[2],
+                               "subfamily":line[3],
+                               "genus":line[4]
+                              }
+
 # put the new genera in the trees and look for monophyletic clades
 for marker_tree in snakemake.input.markers_trees:
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
-
-    # read crass_reference taxonomic classification
-    crass_taxonomy = dict()
-    lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()]
-    for line in lines:
-        crass_taxonomy[line[0]] = {
-                                   "family":line[2],
-                                   "subfamily":line[3],
-                                   "genus":line[4]
-                                  }
 
     # read tree
     t = Tree(marker_tree, format=1)
@@ -119,7 +119,7 @@ for marker_tree in snakemake.input.markers_trees:
                     # iterate the final_lca while assigning taxonomy
                     for leaf in final_lca.iter_leaves():
                         if leaf.genus == "unknown":
-                            #print("\t\tTHIS!!:", leaf.genome, new_genus)
+                            print("\t\tTHIS!!:", leaf.genome, new_genus)
                             markers_taxa.loc[leaf.genome, f"genus_{marker}"] = new_genus
                             # # recalculate completeness, this time based on genus
                             # genome_length = int(leaf.genome.split("_")[-1])
