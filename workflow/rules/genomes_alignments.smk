@@ -1,3 +1,65 @@
+rule blast_all:
+    input:
+        gather_genomes_blastall,
+    output:
+        "results/7_ANI/all_genomes_ref_crassus_blast.tsv"
+    params:
+        fasta_all = "results/7_ANI/all_genomes_ref_crassus.fasta"
+    conda:
+        "../../envs/compare_genomes.yaml"
+    threads: 4
+    shell:
+        """
+        cat {input} > {params.fasta_all} ;
+        makeblastdb -in {params.fasta_all} -dbtype nucl -out {params.fasta_all} ;
+        blastn -query {params.fasta_all} -db {params.fasta_all} \
+        -outfmt '6 std qlen slen' -max_target_seqs 10000 \
+        -out {output} -num_threads {threads}
+        """
+
+rule anicalc:
+    input:
+        rules.blast_all.output
+    output:
+        "results/7_ANI/anicalc_results.tsv"
+    params:
+        script = "scripts/anicalc.py"
+    conda:
+        "../../envs/compare_genomes.yaml"
+    shell:
+        "python {params.script} -i {input} -o {output}"
+
+
+rule aniclust:
+    input:
+        rules.anicalc.output
+    output:
+        genus = "results/7_ANI/aniclust_genus.tsv",
+        species = "results/7_ANI/aniclust_species.tsv",
+    params:
+        script = "scripts/aniclust.py",
+        fasta_all = "results/7_ANI/all_genomes_ref_crassus.fasta"
+    conda:
+        "../../envs/compare_genomes.yaml"
+    shell:
+        "python {params.script} --out {output.genus} --fna {params.fasta_all} --ani {input} --min_ani 0 --min_tcov 50 --min_qcov 0 ; "
+        "python {params.script} --out {output.species} --fna {params.fasta_all} --ani {input} --min_ani 95 --min_tcov 85 --min_qcov 0"
+
+
+rule parse_aniclust:
+    input:
+        genus = rules.aniclust.output.genus,
+        species = rules.aniclust.output.species
+    output:
+        genus = "results/7_ANI/genera_clusters.tsv",
+        species = "results/7_ANI/species_clusters.tsv"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    script:
+        "../../scripts/parse_aniclust.py"
+
+
+#############################
 rule fastani:
     input:
         "results/3_crass_contigs/{contig}.fasta",

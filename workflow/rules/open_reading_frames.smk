@@ -21,7 +21,7 @@ rule predict_ORF:
     shell:
         '''
         length={params.length}
-        if [[ $length -ge 20000 ]]
+        if [[ $length -ge 100000 ]]
         then
             mode="-g 11"
         else

@@ -36,7 +36,7 @@ lines = [line.strip().split("\t") for line in open(snakemake.params.lengths).rea
 taxas_lengths = {line[0]:float(line[1]) for line in lines}
 
 # read taxa assignment from the trees
-df = pd.read_csv(snakemake.input.taxa_markers, sep="\t", index_col = 0)
+df = pd.read_csv(snakemake.input.taxa_markers[0], sep="\t", index_col = 0)
 # get the markers from config
 markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.config["phylogenies"][marker]]
 # get the genomes
