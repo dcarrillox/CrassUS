@@ -21,7 +21,8 @@ rule translate_six_frames:
 rule hmmsearch_six_frames:
     input:
         fasta = rules.translate_six_frames.output,
-        profile = "resources/yutin_2021/scan_contigs/crass_conserved_genes.hmm.h3f"
+        #profile = "resources/yutin_2021/scan_contigs/crass_conserved_genes.hmm.h3f"
+        profile = "resources/marker_profiles/custom_yutin_markers.hmm.h3f"
     output:
         outfile = "results/2_six_frames/1_screening/{sample}.hmmtxt",
         domtblout = "results/2_six_frames/1_screening/{sample}.domtxt"

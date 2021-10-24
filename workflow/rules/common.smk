@@ -22,6 +22,13 @@ wildcard_constraints:
 
 
 ###### Helper functions ######
+def gather_genomes_blastall(wildcards):
+    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
+    crassus_fasta = expand("results/3_crass_contigs/{contig}.fasta",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
+    ref_genomes = glob.glob("resources/genomes/*.fasta")
+    return crassus_fasta + ref_genomes
 
 def get_raw_assemblies(wildcards):
     return sample_sheet["fasta"][wildcards.sample]
@@ -58,7 +65,10 @@ def get_markers_files(wildcards):
     markers_faa_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
-    return markers_summary_files + markers_faa_files
+    markers_hmmtxt_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
+                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
+                      )
+    return markers_summary_files + markers_faa_files + markers_hmmtxt_files
 
 def gather_trees(wildcards):
     # check the config file to know which markers are requested for the trees

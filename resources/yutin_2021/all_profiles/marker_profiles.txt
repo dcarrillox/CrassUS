@@ -12,3 +12,6 @@ VP02686	TerL
 VP00410	portal
 VP02585	portal
 VP02684	portal
+MCP	MCP
+portal	portal
+TerL	TerL

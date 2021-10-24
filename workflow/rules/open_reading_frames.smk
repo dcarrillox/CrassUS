@@ -21,7 +21,7 @@ rule predict_ORF:
     shell:
         '''
         length={params.length}
-        if [[ $length -ge 20000 ]]
+        if [[ $length -ge 100000 ]]
         then
             mode="-g 11"
         else
@@ -60,7 +60,8 @@ checkpoint pick_best_coding:
 rule annotate_proteins_best_coding:
     input:
         fasta = "results/4_ORF/1_best_coding/{prots}.faa",
-        profile = "resources/yutin_2021/all_profiles/all_yutin_profiles.hmm.h3f"
+        #profile = "resources/yutin_2021/all_profiles/all_yutin_profiles.hmm.h3f"
+        profile = "resources/yutin_2021/all_profiles/yutin_and_markers.hmm.h3f"
     output:
         outfile = "results/4_ORF/2_functional_annot/{prots}.hmmtxt",
         domtblout = "results/4_ORF/2_functional_annot/{prots}.domtxt"

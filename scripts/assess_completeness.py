@@ -36,7 +36,7 @@ lines = [line.strip().split("\t") for line in open(snakemake.params.lengths).rea
 taxas_lengths = {line[0]:float(line[1]) for line in lines}
 
 # read taxa assignment from the trees
-df = pd.read_csv(snakemake.input.taxa_markers, sep="\t", index_col = 0)
+df = pd.read_csv(snakemake.input.taxa_markers[0], sep="\t", index_col = 0)
 # get the markers from config
 markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.config["phylogenies"][marker]]
 # get the genomes
@@ -46,9 +46,7 @@ ranks = ["genus", "subfamily", "family"]
 
 for genome in genomes:
     for rank in ranks:
-        # genera & subfamily were adjusted for some ref genomes to make them monophyletic,
-        # split by "_" to get the actual name, ie. Blohavirus instead of Blohavirus_1
-        assigned_taxas = [df.loc[genome, f"{rank}_{marker}"].split("_")[0] for marker in markers]
+        assigned_taxas = [df.loc[genome, f"{rank}_{marker}"] for marker in markers]
         # remove redundancy
         assigned_taxas = list(set(assigned_taxas))
         # remove non taxonomic assignments
@@ -56,7 +54,8 @@ for genome in genomes:
                             "truncated",
                             "wrong strands, check func. annot",
                             "multiple copies",
-                            "unknown"]
+                            "unknown",
+                            "too_short"]
         for reason in no_taxa_assigned:
             if reason in assigned_taxas:
                 assigned_taxas.remove(reason)
@@ -66,6 +65,7 @@ for genome in genomes:
         # check if it is more than one tho
         if assigned_taxas:
             if len(assigned_taxas) == 1:
+                print(assigned_taxas)
                 # this is the assigned taxonomy by the marker tree
                 # get the average length for it
                 ref_len = taxas_lengths[assigned_taxas[0]]

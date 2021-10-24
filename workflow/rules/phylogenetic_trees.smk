@@ -11,12 +11,40 @@ rule get_marker_proteins:
     script:
         "../../scripts/get_marker_genes.py"
 
+
+rule check_markers:
+    input:
+        faa = rules.get_marker_proteins.output.faa,
+        profile = "resources/marker_profiles/custom_yutin_markers.hmm"
+    output:
+        outfile = "results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
+        domtblout = "results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.domtxt"
+    # log:
+    #     "logs/hmmscan/markers/{prots}.log"
+    conda:
+        "../../envs/utils.yaml"
+    threads: 2
+    shell:
+        '''
+        size=$(stat --printf="%s" {input.faa})
+        if [[ $size -eq 0 ]]
+        then
+            touch {output.outfile} ; touch {output.domtblout}
+        else
+            hmmscan --cpu {threads} -o {output.outfile} --domtblout {output.domtblout} {input.profile} {input.faa}
+        fi
+        '''
+
+
 checkpoint summarize_markers:
     input:
         get_markers_files
     output:
         summary = "results/5_phylogenies/markers.summary",
+        coverages = "results/5_phylogenies/markers.coverages",
         faa_dir = directory("results/5_phylogenies/0_marker_genes/1_final")
+    params:
+        profiles_length = "resources/marker_profiles/profiles_length.txt"
     conda:
         "../../envs/utils.yaml"
     script:
@@ -74,6 +102,8 @@ rule make_trees:
         "logs/trees/{marker}.log"
     shell:
         "fasttree -log {log} {input} > {output}"
+
+
 
 # rule measure_leaves_distances:
 #     input:
