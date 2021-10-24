@@ -65,7 +65,10 @@ def get_markers_files(wildcards):
     markers_faa_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
-    return markers_summary_files + markers_faa_files
+    markers_hmmtxt_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
+                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
+                      )
+    return markers_summary_files + markers_faa_files + markers_hmmtxt_files
 
 def gather_trees(wildcards):
     # check the config file to know which markers are requested for the trees

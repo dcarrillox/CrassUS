@@ -1,3 +1,6 @@
+MCP	MCP	full_length
+portal	portal	full_length
+TerL	TerL	full_length
 VP02660	PNK	full_length
 VP02578	IHF_54	full_length
 VP02577	IHF_53	full_length
