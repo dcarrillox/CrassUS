@@ -5,16 +5,18 @@ rule all:
     input:
         #aggregate_best_codings,
         # gather_trees,
-        #"results/6_clustering/shared_content_matrix.txt",
+        "results/6_clustering/shared_content_matrix.txt",
         "results/4_ORF/2_functional_annot_tables/.finished",
         #get_plots,
         "results/5_phylogenies/markers.coverages",
         "results/5_phylogenies/taxonomic_classification_completeness.txt",
         #"results/7_ANI/genera_clusters.tsv",
-        #"results/7_ANI/species_clusters.tsv",
+        "results/7_ANI/0_species/aniclust_species.tsv",
+        "results/7_ANI/1_genus/aniclust_genus.tsv",
         #"results/5_phylogenies/2_trees/taxonomic_classification.txt"
         #gather_dtr
-        #"results/6_clustering/shared_content_taxonomy.txt",
+        "results/6_clustering/shared_content_taxonomy.txt",
+        "results/7_ANI/assigned_genus_species.txt",
         #"results/5_phylogenies/taxonomic_classification_completeness_protshared.txt",
         #"results/5_phylogenies/unknown_genomes.txt",
         #"results/7_ANI/2_plot/.gggenomes_done"

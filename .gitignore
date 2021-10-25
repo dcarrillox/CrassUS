@@ -10,6 +10,7 @@ container/*
 !container/container.yml
 *ipynb
 !dev_notes.ipynb
+!parse_terl_tree.ipynb
 crassus_genomes.txt
 .snakemake
 .cache/
@@ -32,3 +33,5 @@ mafft_test*
 bas_ggtree.R
 tree_fig*.svg
 *.png
+mafft_iqtree_test*
+trees_benchmark*
