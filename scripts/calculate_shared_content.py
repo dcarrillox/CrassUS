@@ -57,7 +57,7 @@ contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake
 df2 = pd.DataFrame(index=all_genomes, columns=contigs)
 df2 = df2.fillna(0)
 
-print(cont)
+
 # iterate the genomes and compare them
 for contig in contigs:
     for ref in all_genomes:
@@ -79,4 +79,22 @@ for contig in contigs:
 # NW that only found contigs are in the columns. The table is not intended to be
 # simetric, it only contains sharing values of the contigs but not of the reference
 # genomes
+# just before writing, add taxonomy of the reference
+# read reference taxonomy
+crass_taxonomy = dict()
+lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()]
+for line in lines:
+    crass_taxonomy[line[0]] = {"family":line[2], "subfamily":line[3], "genus":line[4]}
+
+for tgenome in df2.index:
+    if tgenome in crass_taxonomy:
+        df2.loc[tgenome, "family"] = crass_taxonomy[tgenome]["family"]
+        df2.loc[tgenome, "subfamily"] = crass_taxonomy[tgenome]["subfamily"]
+        df2.loc[tgenome, "genus"] = crass_taxonomy[tgenome]["genus"]
+
+taxa_columns = ["family", "subfamily", "genus"]
+df2 = df2[taxa_columns + [ col for col in df2.columns if col not in taxa_columns]]
+
+
+
 df2.to_csv(snakemake.output.shared, sep="\t")

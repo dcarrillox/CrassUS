@@ -36,7 +36,22 @@ rule calculate_shared_prots:
         presabs = "results/6_clustering/presabs_matrix.txt",
         shared  = "results/6_clustering/shared_content_matrix.txt",
         nprots  = temp("results/6_clustering/nprots_cluster.txt")
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
     conda:
         "../../envs/utils.yaml"
     script:
         "../../scripts/calculate_shared_content.py"
+
+rule protein_content_taxa:
+    input:
+        matrix_shared = rules.calculate_shared_prots.output.shared,
+        markers_table = "results/5_phylogenies/taxonomic_classification_completeness.txt"
+    output:
+        "results/6_clustering/shared_content_taxonomy.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/phylogenies.yaml"
+    script:
+        "../../scripts/taxonomy_from_clustering.py"

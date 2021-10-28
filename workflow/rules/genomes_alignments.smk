@@ -15,7 +15,7 @@ rule blast_all:
         """
         cat {input} > {params.fasta_all} ;
         makeblastdb -in {params.fasta_all} -dbtype nucl -out {params.db} ;
-        blastn -query {params.fasta_all} -db {params.db} \
+        blastn -query {params.fasta_all} -db {params.db} -dust no \
         -outfmt '6 std qlen slen' -max_target_seqs 10000 \
         -out {output.tsv} -num_threads {threads}
         """
@@ -106,15 +106,25 @@ rule get_sp_gen_clusters:
         gen = rules.aniclust_genus.output,
         fasta_all = "results/7_ANI/0_species/all_genomes_ref_crassus.fasta"
     output:
-        "results/7_ANI/assigned_genus_species.txt"
+        "results/7_ANI/ani_genus_species.txt"
     conda:
         "../../envs/compare_genomes.yaml"
     script:
         "../../scripts/create_species_genus_tables_aniclust.py"
 
 
-
-
+rule ani_assing_taxonomy:
+    input:
+        assignments = rules.get_sp_gen_clusters.output,
+        anicalc = rules.anicalc_species.output
+    output:
+        "results/7_ANI/ani_genus_species_taxonomy.txt"
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    conda:
+        "../../envs/compare_genomes.yaml"
+    script:
+        "../../scripts/get_taxonomy_ani.py"
 
 
 

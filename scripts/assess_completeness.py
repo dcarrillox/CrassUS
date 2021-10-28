@@ -42,7 +42,7 @@ markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.con
 # get the genomes
 genomes = df.index.to_list()
 
-ranks = ["genus", "subfamily", "family"]
+ranks = ["subfamily", "family"] # "genus" removed
 
 for genome in genomes:
     for rank in ranks:
@@ -51,7 +51,7 @@ for genome in genomes:
         assigned_taxas = list(set(assigned_taxas))
         # remove non taxonomic assignments
         no_taxa_assigned = ["Not found",
-                            "truncated",
+                            #"truncated",
                             "wrong strands, check func. annot",
                             "multiple copies",
                             "unknown",

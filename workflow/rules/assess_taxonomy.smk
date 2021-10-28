@@ -23,7 +23,7 @@ rule parse_trees:
         markers_summary = "results/5_phylogenies/markers.summary"
     output:
         #temp("results/5_phylogenies/2_trees/taxonomic_classification.txt")
-        "results/5_phylogenies/2_trees/taxonomic_classification_round1.txt",
+        "results/5_phylogenies/2_trees/taxonomic_classification.txt",
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     conda:
@@ -31,7 +31,7 @@ rule parse_trees:
     script:
         "../../scripts/get_taxonomy_from_trees.py"
 
-rule assess_completenes:
+rule assess_completeness:
     input:
         taxa_markers = rules.parse_trees.output,
         dtr_blast_done = gather_dtr
@@ -44,18 +44,18 @@ rule assess_completenes:
     script:
         "../../scripts/assess_completeness.py"
 
-rule protein_content_taxa:
+
+rule aggregate_signals:
     input:
-        matrix_shared = rules.calculate_shared_prots.output.shared,
-        markers_table  = rules.assess_completenes.output
+        phylogenies = rules.assess_completeness.output,
+        shared_prot = "results/6_clustering/shared_content_taxonomy.txt",
+        ani_cluster = "results/7_ANI/ani_genus_species_taxonomy.txt"
     output:
-        "results/6_clustering/shared_content_taxonomy.txt"
-    params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        "results/crassus_results.txt"
     conda:
-        "../../envs/phylogenies.yaml"
+        "../../envs/utils.yaml"
     script:
-        "../../scripts/taxonomy_from_clustering.py"
+        "../../scripts/final_table.py"
 
 # rule aggregate_taxa_sources:
 #     input:
