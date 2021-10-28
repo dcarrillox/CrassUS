@@ -20,7 +20,7 @@ for contig in crassus_classification:
     for marker in markers:
         crassus_classification[contig][f"family_{marker}"] = "unknown"
         crassus_classification[contig][f"subfamily_{marker}"] = "unknown"
-        crassus_classification[contig][f"genus_{marker}"] = "unknown"
+        #crassus_classification[contig][f"genus_{marker}"] = "unknown"
 
 
 # read crass_reference taxonomic classification
@@ -98,20 +98,21 @@ for marker_tree in snakemake.input.markers_trees:
                         if leaf.subfamily == "new":
                             crassus_classification[leaf.genome][f"subfamily_{marker}"] = subfamily
 
-    for genus in genera:
-        lcas = t.get_monophyletic(values=[genus, "new"], target_attr="genus")
-        # if monophyletic clades containing genus and new genomes were found, iterate them
-        if lcas:
-            # iterate the lcas
-            for lca in lcas:
-                genus_leaves = lca.search_nodes(genus=genus)
-                # to get the common ancestor, it does not work if there is only one leaf
-                if len(genus_leaves) > 1:
-                    final_lca = lca.get_common_ancestor(genus_leaves)
-                    # iterate the final_lca while assigning taxonomy
-                    for leaf in final_lca.iter_leaves():
-                        if leaf.genus == "new":
-                            crassus_classification[leaf.genome][f"genus_{marker}"] = genus
+    ## don't assess genus with the markers by now
+    # for genus in genera:
+    #     lcas = t.get_monophyletic(values=[genus, "new"], target_attr="genus")
+    #     # if monophyletic clades containing genus and new genomes were found, iterate them
+    #     if lcas:
+    #         # iterate the lcas
+    #         for lca in lcas:
+    #             genus_leaves = lca.search_nodes(genus=genus)
+    #             # to get the common ancestor, it does not work if there is only one leaf
+    #             if len(genus_leaves) > 1:
+    #                 final_lca = lca.get_common_ancestor(genus_leaves)
+    #                 # iterate the final_lca while assigning taxonomy
+    #                 for leaf in final_lca.iter_leaves():
+    #                     if leaf.genus == "new":
+    #                         crassus_classification[leaf.genome][f"genus_{marker}"] = genus
 
     # check which genomes are not present in the tree and call them as "Not found"
     # for that marker
@@ -121,7 +122,7 @@ for marker_tree in snakemake.input.markers_trees:
             reason = markers_summary.loc[genome,marker]
             crassus_classification[genome][f"family_{marker}"] = reason
             crassus_classification[genome][f"subfamily_{marker}"] = reason
-            crassus_classification[genome][f"genus_{marker}"] = reason
+            #crassus_classification[genome][f"genus_{marker}"] = reason
 
 
 # convert the dictionary to table and write to csv with pandas
