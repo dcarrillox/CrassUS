@@ -32,7 +32,6 @@ rule anicalc_species:
     shell:
         "python {params.script} -i {input} -o {output}"
 
-
 rule aniclust_species:
     input:
         ani = rules.anicalc_species.output,
@@ -45,7 +44,6 @@ rule aniclust_species:
         "../../envs/compare_genomes.yaml"
     shell:
         "python {params.script} --out {output} --fna {input.fasta_all} --ani {input.ani} --min_ani 95 --min_tcov 85 --min_qcov 0"
-
 
 rule blast_representatives:
     input:
@@ -72,7 +70,6 @@ rule blast_representatives:
         -out {output.tsv} -num_threads {threads}
         """
 
-
 rule anicalc_genus:
     input:
         rules.blast_representatives.output.tsv
@@ -84,7 +81,6 @@ rule anicalc_genus:
         "../../envs/compare_genomes.yaml"
     shell:
         "python {params.script} -i {input} -o {output}"
-
 
 rule aniclust_genus:
     input:
@@ -99,7 +95,6 @@ rule aniclust_genus:
     shell:
         "python {params.script} --out {output} --fna {input.fasta_repr} --ani {input.ani} --min_ani 0 --min_tcov 50 --min_qcov 0"
 
-
 rule get_sp_gen_clusters:
     input:
         sp =  rules.aniclust_species.output,
@@ -111,7 +106,6 @@ rule get_sp_gen_clusters:
         "../../envs/compare_genomes.yaml"
     script:
         "../../scripts/create_species_genus_tables_aniclust.py"
-
 
 rule ani_assing_taxonomy:
     input:
@@ -126,7 +120,56 @@ rule ani_assing_taxonomy:
     script:
         "../../scripts/get_taxonomy_ani.py"
 
+rule install_gggenomes:
+    output:
+        done = "results/7_ANI/2_plot/.gggenomes_install_done"
+    conda:
+        "../../envs/plot_genomes.yaml"
+    log:
+        "logs/install_gggenomes.log"
+    shell:
+        "Rscript scripts/install_gggenomes.R &> {log}"
 
+checkpoint prepare_gggenomes_data:
+    input:
+        ani = rules.anicalc_species.output,
+        blast = rules.blast_all.output.tsv
+    output:
+        directory("results/7_ANI/2_plot")
+    params:
+        taxonomy = "resources/crass_taxonomy.txt"
+    threads: 10
+    conda:
+        "../../envs/utils.yaml"
+    script:
+        "../../scripts/prepare_gggenomes_data.py"
+
+
+rule plot_gggenomes:
+    input:
+        "results/4_ORF/2_functional_annot_tables/.finished",
+        "results/7_ANI/2_plot/.gggenomes_install_done",
+        #megablast = rules.megablast_genomes.output.megablast,
+    output:
+        "results/7_ANI/2_plot/{gggdata}.png"
+    params:
+        contigs_tables_dir = "results/4_ORF/2_functional_annot_tables/",
+        reference_tables_dir = "resources/genomes/"
+    conda:
+        "../../envs/plot_genomes.yaml"
+    # script:
+    #     "../../scripts/plot_gggenomes.R"
+    shell:
+        "touch {output}"
+
+
+rule gather_gggenomes_plots:
+    input:
+        gather_gggenomes
+    output:
+        "results/7_ANI/.gggenomes_done"
+    shell:
+        "touch {output}"
 
 
 

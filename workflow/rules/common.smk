@@ -119,9 +119,11 @@ def get_genome_tables_finished(wildcards):
                         )
     return genome_tables
 
-def get_pyani(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    pyani = expand("results/7_ANI/1_most_similar/{contig}/ANIb_alignment_coverage.tab",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+
+
+def gather_gggenomes(wildcards):
+    checkpoint_output = checkpoints.prepare_gggenomes_data.get(**wildcards).output[0]
+    gggenomes = expand("results/7_ANI/2_plot/{gggdata}.png",
+                    gggdata=glob_wildcards(f"{checkpoint_output}/{{gggdata}}.txt").gggdata,
                     )
-    return pyani
+    return gggenomes
