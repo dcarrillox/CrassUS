@@ -1,9 +1,7 @@
 import pandas as pd
-import os
-import multiprocessing
-from functools import partial
+import os, glob
 from collections import defaultdict
-import time
+
 
 os.makedirs(snakemake.output[0], exist_ok=True)
 
@@ -14,8 +12,6 @@ crass_reference = {line.split("\t")[0] for line in open(snakemake.params.taxonom
 
 # Remove reference queryies
 anicalc_df = anicalc_df[~anicalc_df.qname.isin(crass_reference)]
-
-
 
 # check if reference
 def is_ref(tname):
@@ -50,6 +46,9 @@ res = res[['key', 'group']]
 # load the blast file
 names = ["qname", "tname", "perc_sim", "aln_len", "mismatch", "gap", "qstart", "qend", "tstart", "tend", "evalue", "std", "qlen", "slen"]
 blast_df = pd.read_csv("/home/danielc/projects/crAssUS/results/7_ANI/0_species/all_genomes_ref_crassus_blast.tsv", sep="\t", names=names)
+# remove alignments shorter than the cutoff
+min_aln_len = int(snakemake.config["plot"]["aln_min_len"])
+blast_df = blast_df[blast_df["aln_len"] >= min_aln_len]
 blast_df['key'] = blast_df['qname'] + '@' + blast_df['tname']
 
 # again make key column
@@ -62,9 +61,35 @@ filtered_df = blast_df[blast_df.key.isin(ani_key_set)]
 filtered_df = filtered_df.merge(res, on = 'key', how = 'left')
 query_groups = filtered_df.groupby('qname')
 
+func_annot = ["TerL", "MCP", "portal"]
+def process_genome_table(genome_id, crass_reference, func_annot, target_df):
+    if genome in crass_reference:
+        file = f"{snakemake.params.ref_genome_tables_dir}/{genome}.table"
+    else:
+        file = glob.glob(f"{snakemake.params.genome_tables_dir}/{genome}_tbl*.table")[0]
+
+    df = pd.read_csv(file, sep="\t", header=0, index_col=0)
+    for protein in df.index:
+        if df.loc[protein, "strand"] == "-":
+            start, end = df.loc[protein, "start"], df.loc[protein, "end"]
+            df.loc[protein, "start"] = end
+            df.loc[protein, "end"]  = start
+
+        if df.loc[protein, "yutin"] not in func_annot:
+            df.loc[protein, "yutin"] = ""
+
+    return df
+
+
 # Write to output
 for x in query_groups.groups:
     query_target_pair = query_groups.get_group(x)
-    query_target_pair.to_csv(f"{snakemake.output[0]}/{x}.txt", sep="\t", index=False)
-    # print(query_target_pair)
-    # print('----\n\n')
+    query_target_pair.to_csv(f"{snakemake.output[0]}/{x}.blast", sep="\t", index=False)
+
+    # get genome tables for the genomes involved
+    genomes = [x] + list(set(query_target_pair["tname"]))
+    tables_df = pd.DataFrame()
+    for genome in genomes:
+        df = process_genome_table(genome, crass_reference, func_annot, tables_df)
+        tables_df = tables_df.append(df, ignore_index=True)
+    tables_df.to_csv(f"{snakemake.output[0]}/{x}.annot", sep="\t")

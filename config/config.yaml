@@ -9,3 +9,9 @@ phylogenies:
   portal: True
 
 shared_genus_cutoff: 0.65
+
+
+
+plot:
+  generate_plots: True
+  aln_min_len: 200

@@ -122,7 +122,7 @@ rule ani_assing_taxonomy:
 
 rule install_gggenomes:
     output:
-        done = "results/7_ANI/2_plot/.gggenomes_install_done"
+        done = "resources/.gggenomes_install_done"
     conda:
         "../../envs/plot_genomes.yaml"
     log:
@@ -132,13 +132,15 @@ rule install_gggenomes:
 
 checkpoint prepare_gggenomes_data:
     input:
+        "results/4_ORF/2_functional_annot_tables/.finished",
         ani = rules.anicalc_species.output,
         blast = rules.blast_all.output.tsv
     output:
         directory("results/7_ANI/2_plot")
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
-    threads: 10
+        taxonomy = "resources/crass_taxonomy.txt",
+        genome_tables_dir = "results/4_ORF/2_functional_annot_tables",
+        ref_genome_tables_dir = "resources/genomes"
     conda:
         "../../envs/utils.yaml"
     script:
@@ -147,9 +149,9 @@ checkpoint prepare_gggenomes_data:
 
 rule plot_gggenomes:
     input:
-        "results/4_ORF/2_functional_annot_tables/.finished",
-        "results/7_ANI/2_plot/.gggenomes_install_done",
-        #megablast = rules.megablast_genomes.output.megablast,
+        rules.install_gggenomes.output.done,
+        blast = "results/7_ANI/2_plot/{gggdata}.blast",
+        annot = "results/7_ANI/2_plot/{gggdata}.annot"
     output:
         "results/7_ANI/2_plot/{gggdata}.png"
     params:
@@ -157,10 +159,8 @@ rule plot_gggenomes:
         reference_tables_dir = "resources/genomes/"
     conda:
         "../../envs/plot_genomes.yaml"
-    # script:
-    #     "../../scripts/plot_gggenomes.R"
-    shell:
-        "touch {output}"
+    script:
+        "../../scripts/plot_gggenomes.R"
 
 
 rule gather_gggenomes_plots:
@@ -170,8 +170,6 @@ rule gather_gggenomes_plots:
         "results/7_ANI/.gggenomes_done"
     shell:
         "touch {output}"
-
-
 
 # aniclust genera
 # "python {params.script} --out {output.genus} --fna {params.fasta_all} --ani {input} --min_ani 0 --min_tcov 50 --min_qcov 0 ; "

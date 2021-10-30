@@ -3,6 +3,7 @@ include: "rules/common.smk"
 
 rule all:
     input:
+        generate_plots,
         # #aggregate_best_codings,
         # # gather_trees,
         # "results/6_clustering/shared_content_matrix.txt",
@@ -20,8 +21,12 @@ rule all:
         # #get_pyani
         # #"results/7_ANI/ani_genus_species.txt",
         # "results/7_ANI/ani_genus_species_taxonomy.txt",
-        # "results/crassus_results.txt",
-        "results/7_ANI/.gggenomes_done"
+        # "results/crassus_results.txt"
+        #"results/7_ANI/.gggenomes_done"
+
+
+
+
 
 include: "rules/assembly.smk"
 include: "rules/scan_contigs.smk"

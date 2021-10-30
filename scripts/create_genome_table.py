@@ -38,7 +38,7 @@ for protein, hits in yutin_annot.items():
 
 
 # read gff file and create the genome table on the run
-final_table = [["protein_id", "genome", "start", "stop", "strand", "partial", "yutin"]]
+final_table = [["protein_id", "genome", "start", "end", "strand", "partial", "yutin"]]
 
 lines = [line.strip().split("\t") for line in open(snakemake.input.gff) if not line.startswith("#")]
 for line in lines:

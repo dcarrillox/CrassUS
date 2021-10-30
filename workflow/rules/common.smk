@@ -124,6 +124,10 @@ def get_genome_tables_finished(wildcards):
 def gather_gggenomes(wildcards):
     checkpoint_output = checkpoints.prepare_gggenomes_data.get(**wildcards).output[0]
     gggenomes = expand("results/7_ANI/2_plot/{gggdata}.png",
-                    gggdata=glob_wildcards(f"{checkpoint_output}/{{gggdata}}.txt").gggdata,
+                    gggdata=glob_wildcards(f"{checkpoint_output}/{{gggdata}}.blast").gggdata,
                     )
     return gggenomes
+
+def generate_plots(wildcards):
+    if config["plot"]["generate_plots"]:
+        return "results/7_ANI/.gggenomes_done"
