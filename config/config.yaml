@@ -17,5 +17,5 @@ shared_prots_cutoffs:
 
 
 plot:
-  generate_plots: True
+  generate_plots: False
   aln_min_len: 200

@@ -12,10 +12,6 @@ lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).re
 for line in lines:
     crass_taxonomy[line[0]] = {"family":line[2], "subfamily":line[3], "genus":line[4]}
 
-
-# shared cuttof for genus delimitation
-shared_genus_cutoff = float(snakemake.config["shared_genus_cutoff"])
-
 to_write = list()
 # find out which (complete) genomes share >70% with any other genome
 for qgenome in matrix_shared.columns[3:]:

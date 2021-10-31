@@ -2,7 +2,7 @@ rule proteins_clustering:
     input:
         get_prots_files
     output:
-        tsv = temp("results/6_clustering/table_clustering.tsv"),
+        tsv = "results/6_clustering/table_clustering.tsv",
         tmp_dir = temp(directory("results/6_clustering/tmp"))
     #container: "library://dcarrillo/default/crassus:0.1"
     conda:
@@ -11,7 +11,7 @@ rule proteins_clustering:
         prots_faa = "results/6_clustering/db/all_proteins.faa",
         prots_db  = "results/6_clustering/db/all_proteins",
         out_prefx = "results/6_clustering/clustering"
-    threads: 4
+    threads: 6
     log:
         db = "logs/clustering/db.log",
         clust = "logs/clustering/clustering.log",
@@ -35,9 +35,11 @@ rule calculate_shared_prots:
     output:
         presabs = "results/6_clustering/presabs_matrix.txt",
         shared  = "results/6_clustering/shared_content_matrix.txt",
-        nprots  = temp("results/6_clustering/nprots_cluster.txt")
+        nprots  = "results/6_clustering/nprots_cluster.txt",
+        cluster_ids = "results/6_clustering/cluster_ids.txt"
     params:
         taxonomy = "resources/crass_taxonomy.txt"
+    threads: 999
     conda:
         "../../envs/utils.yaml"
     script:

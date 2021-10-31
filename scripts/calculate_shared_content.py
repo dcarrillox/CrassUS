@@ -1,5 +1,9 @@
 import os
 import pandas as pd
+from functools import partial
+import multiprocessing
+
+
 
 ################
 # presabs matrix
@@ -21,6 +25,10 @@ for line in lines:
     if int(line[0]) > 1:
         cont += 1
         cluster_ids[line[1]] = f"cluster_{cont}"
+# write old and new cluster_id to file
+with open(snakemake.output.cluster_ids, "w") as fout:
+    for cluster in cluster_ids:
+        fout.write(f"{cluster}\t{cluster_ids[cluster]}\n")
 
 
 # init an empty dataframe, rows are the clusters and columns the genomes
@@ -43,6 +51,34 @@ df.to_csv(snakemake.output.presabs, sep="\t")
 # shared content
 ################
 
+def compute_genome_shared(all_genomes, clusters_list, n_prots_list, qgenome):
+    # initialize the list for the genome that will contain the shared values
+    shared_content = list()
+    # iterate the genomes
+    for tgenome in all_genomes:
+        shared = 0
+        if qgenome != tgenome:
+            # iterate the clusters list of the query genome
+            for i in range(0, len(clusters_list[qgenome])):
+                # if both of the genomes have that ortholog...
+                if clusters_list[qgenome][i] != 0 and clusters_list[tgenome][i] != 0:
+                    # ... sum the n_prots of the query genome to shared
+                    shared += int(clusters_list[qgenome][i])
+
+            # # lowest n_protein of the two genomes in the denominator
+            shared_perc = round(float(shared/n_prots_list[qgenome]),3)
+
+            shared_content.append(shared_perc)
+        # put 0 when self comparison
+        else:
+            shared_content.append(0)
+
+
+    shared_content.insert(0, qgenome)
+    return shared_content
+
+
+
 # get total n_prots per genome
 genomes_totalp = {genome:0 for genome in all_genomes}
 for prot in prots:
@@ -52,27 +88,49 @@ for prot in prots:
 # store each genome (column) in a dict, k=genome  v=clusters_presabs
 genomes_clusters = {genome:df[genome].tolist() for genome in all_genomes}
 
-# init a dataframe, all genomes in the rows, found contigs in the columns
+## TESTING MULTITHREADING
+print(f"Calculating shared content with {snakemake.threads} CPUs...")
+# prepare the partial function
+part = partial(compute_genome_shared, all_genomes, genomes_clusters, genomes_totalp)
+
 contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake.input.prots_files])
-df2 = pd.DataFrame(index=all_genomes, columns=contigs)
-df2 = df2.fillna(0)
 
+pool = multiprocessing.Pool(processes=snakemake.threads)
+shared_content = pool.map(part, contigs)
+pool.close()
+pool.join()
 
-# iterate the genomes and compare them
-for contig in contigs:
-    for ref in all_genomes:
-        shared = 0
-        # check it is not a self comparison
-        if ref != contig:
-            for i in range(0, cont):
-                if genomes_clusters[contig][i] > 0 and genomes_clusters[ref][i] > 0:
-                    #print(genomes_clusters[contig][i], genomes_clusters[ref][i])
-                    shared += genomes_clusters[contig][i]
+# construct df2 with the lists in shared_content
+header = ["target_genome"] + all_genomes
 
-            # compute the shared perc
-            shared_perc = round(float(shared/genomes_totalp[contig]), 3)
-            # fill df2 with it. query is the row, ref is the column
-            df2.loc[ref, contig] = shared_perc
+df2 = pd.DataFrame(shared_content, columns=header).set_index("target_genome")
+# transpose to have the contigs in the columns
+df2 = df2.transpose()
+print(df2.shape)
+print("done")
+
+## BEFORE TESTING MULTITHREADING
+# # init a dataframe, all genomes in the rows, found contigs in the columns
+# contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake.input.prots_files])
+# df2 = pd.DataFrame(index=all_genomes, columns=contigs)
+# df2 = df2.fillna(0)
+#
+#
+# # iterate the genomes and compare them
+# for contig in contigs:
+#     for ref in all_genomes:
+#         shared = 0
+#         # check it is not a self comparison
+#         if ref != contig:
+#             for i in range(0, cont):
+#                 if genomes_clusters[contig][i] > 0 and genomes_clusters[ref][i] > 0:
+#                     #print(genomes_clusters[contig][i], genomes_clusters[ref][i])
+#                     shared += genomes_clusters[contig][i]
+#
+#             # compute the shared perc
+#             shared_perc = round(float(shared/genomes_totalp[contig]), 3)
+#             # fill df2 with it. query is the row, ref is the column
+#             df2.loc[ref, contig] = shared_perc
 
 
 # write the shared content matrix to outfile
