@@ -47,19 +47,47 @@ to_write = {genome :{"genome": genome,
                      "subfamily":str(),
                      "genus":str(),
                      "species":str(),
+                     "family_evidence":list(),
                      "notes":list()
                     }
             for genome in aggregated_df.index}
 
 
 def get_markers_annot(genome, markers, df):
-    exclude = ["not_found", "too_short", "unknown"]
+    exclude = ["not_found", "too_short"]
     family    = list(set([df.loc[genome, f"family_{marker}"] for marker in markers if df.loc[genome, f"family_{marker}"] not in exclude]))
     subfamily = list(set([df.loc[genome, f"subfamily_{marker}"] for marker in markers if df.loc[genome, f"subfamily_{marker}"] not in exclude]))
-    if len(family) == 1 and len(subfamily) == 1:
-        return family[0], subfamily[0]
+
+    if len(family) == 1:
+        # check if it is unknown by marker
+        if family[0] == "unknown":
+            return "unknown", "unknown"
+        elif subfamily[0] == "unknown":
+            return family[0], "unknown"
+        else:
+            return family[0], subfamily[0]
+
     else:
-        return "", ""
+        if "unknown" in family:
+            family.remove("unknown")
+        if "unknown" in subfamily:
+            subfamily.remove("unknown")
+
+        if family and not subfamily:
+            return family[0], "unknown"
+        elif family and subfamily:
+            return family[0], subfamily[0]
+        else:
+            return "", ""
+
+
+def family_by_shared(genome, df):
+    if df.loc[genome, "prot_ref"] >= 20:
+        families = df.loc[genome, "prot_most_similar_ref_family"].split(",")
+        return families
+    else:
+        return list()
+
 
 def assess_genus(genome, df):
     check = False
@@ -87,13 +115,35 @@ for genome in aggregated_df.index:
     marker_fam, marker_subfam = get_markers_annot(genome, markers, aggregated_df)
 
     # check if shared prot validates the marker assignment
-    to_write[genome]["family"] = marker_fam
-    to_write[genome]["subfamily"] = marker_subfam
-    if marker_fam != "":
-        if aggregated_df.loc[genome, "prot_ref"] >= 20 and marker_fam in aggregated_df.loc[genome, "prot_most_similar_ref_family"].split(","):
-            pass
+    # to_write[genome]["family"] = marker_fam
+    # to_write[genome]["subfamily"] = marker_subfam
+
+    # check family given by shared_prots
+    family_shared = family_by_shared(genome, aggregated_df)
+    # compare the family/ies to the marker one. If the later is unknown, then we can call the shared one
+    if family_shared:
+        if marker_fam not in ["", "unknown"]:
+            if marker_fam not in family_shared:
+                to_write[genome]["notes"].append("shared prots with family below 20%")
+            else:
+                to_write[genome]["family"] = marker_fam
+                to_write[genome]["subfamily"] = marker_subfam
+                to_write[genome]["family_evidence"].append("phylogenies")
+                to_write[genome]["family_evidence"].append("shared prots")
         else:
+            if len(family_shared) == 1:
+                to_write[genome]["family"] = family_shared[0]
+                to_write[genome]["subfamily"] = marker_subfam
+                to_write[genome]["family_evidence"].append("shared prots")
+    else:
+        to_write[genome]["family"] = marker_fam
+        to_write[genome]["subfamily"] = marker_subfam
+        to_write[genome]["family_evidence"].append("phylogenies")
+        if marker_fam not in ["", "unknown"]:
             to_write[genome]["notes"].append("shared prots with family below 20%")
+
+
+
 
     # get genus & species
     genus = assess_genus(genome, aggregated_df)
@@ -110,17 +160,18 @@ for genome in aggregated_df.index:
         to_write[genome]["ref_taxa"] = genus
         compl = round(genome_length/taxas_lengths[genus] , 2)
     else:
-        if marker_subfam != "":
-            to_write[genome]["ref_taxa"] = marker_subfam
-            compl = round(genome_length/taxas_lengths[marker_subfam] , 2)
-        elif marker_fam != "":
-            to_write[genome]["ref_taxa"] = marker_fam
-            compl = round(genome_length/taxas_lengths[marker_fam] , 2)
+        if to_write[genome]["subfamily"] not in  ["", "unknown"]:
+            to_write[genome]["ref_taxa"] = to_write[genome]["subfamily"]
+            compl = round(genome_length/taxas_lengths[to_write[genome]["subfamily"]] , 5)
+        elif to_write[genome]["family"] not in  ["", "unknown"]:
+            to_write[genome]["ref_taxa"] = to_write[genome]["family"]
+            compl = round(genome_length/taxas_lengths[to_write[genome]["family"]] , 5)
     to_write[genome]["len/taxa_len"] = compl
 
-    # join notes
+    # join notes & family_evidence
     to_write[genome]["notes"] = ";".join(to_write[genome]["notes"])
+    to_write[genome]["family_evidence"] = ";".join(to_write[genome]["family_evidence"])
 
 
 to_write_df = pd.DataFrame.from_dict(to_write, orient="index")
-to_write_df.to_csv("/home/danielc/projects/crAssUS/test.txt", index=False, sep="\t")
+to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")
