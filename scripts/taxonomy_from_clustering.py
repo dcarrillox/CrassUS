@@ -37,28 +37,23 @@ for qgenome in matrix_shared.columns[3:]:
                     ref_genus_list.append(crass_taxonomy[tgenome]["genus"])
 
         if ref_family_list and ref_genus_list:
-            ref_family = f"({max_shared}) " + ",".join(list(set(ref_family_list)))
-            to_add.append(ref_family)
-            ref_genus = f"({max_shared}) " + ",".join(list(set(ref_genus_list)))
-            to_add.append(ref_genus)
+            if max_shared != 0:
+                to_add.append(max_shared)
+                ref_family = ",".join(sorted(list(set(ref_family_list))))
+                to_add.append(ref_family)
+                ref_genus  = ",".join(sorted(list(set(ref_genus_list))))
+                to_add.append(ref_genus)
+            else:
+                to_add.append("")
+                to_add.append("")
         else:
             to_add.append("")
             to_add.append("")
 
-        # check if any ref genome passess the shared cuttof
-        cuttof_genomes = matrix_shared[matrix_shared[qgenome] >= shared_genus_cutoff]
-        ref_genus = ""
-        for tgenome in cuttof_genomes.index:
-            if tgenome in crass_taxonomy:
-                ref_genus = crass_taxonomy[tgenome]["genus"]
-                break
-        to_add.append(ref_genus)
-
         to_write.append(to_add)
 
-print(to_write)
+
 # create df and write to file
-columns = ["genome", "most_similar_family", "most_similar_genus", "genus"]
+columns = ["genome", "ref_shared_prot", "most_similar_family", "most_similar_genus"]
 to_write_df = pd.DataFrame(to_write, columns=columns)
-#print(to_write_df)
 to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")

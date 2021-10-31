@@ -120,7 +120,7 @@ for marker in summary_df.columns: # don't look at the "contigs" column
         # process only contigs for which there were proteins passing the multiple copies etc conditions, for this specific marker.
         if contig in hmmscan_df.index:
             if not pd.isnull(hmmscan_df.loc[contig, f"{marker}_prot"]):
-                print(hmmscan_df.loc[contig, f"{marker}_prot"])
+                #print(hmmscan_df.loc[contig, f"{marker}_prot"])
                 prot_id = hmmscan_df.loc[contig, f"{marker}_prot"]
                 marker_cov = hmmscan_df.loc[contig, f"{marker}_cov"]
                 prot_cov   = hmmscan_df.loc[contig, f"{marker}_prot_cov"]

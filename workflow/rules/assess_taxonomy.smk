@@ -22,8 +22,7 @@ rule parse_trees:
         markers_trees = gather_trees,
         markers_summary = "results/5_phylogenies/markers.summary"
     output:
-        #temp("results/5_phylogenies/2_trees/taxonomic_classification.txt")
-        "results/5_phylogenies/2_trees/taxonomic_classification.txt",
+        "results/5_phylogenies/taxonomic_classification.txt",
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     conda:
@@ -31,31 +30,52 @@ rule parse_trees:
     script:
         "../../scripts/get_taxonomy_from_trees.py"
 
-rule assess_completeness:
-    input:
-        taxa_markers = rules.parse_trees.output,
-        dtr_blast_done = gather_dtr
-    output:
-        "results/5_phylogenies/taxonomic_classification_completeness.txt"
-    params:
-        lengths = "resources/taxas_average_length.txt"
-    conda:
-        "../../envs/phylogenies.yaml"
-    script:
-        "../../scripts/assess_completeness.py"
-
 
 rule aggregate_signals:
     input:
-        phylogenies = rules.assess_completeness.output,
+        phylogenies = rules.parse_trees.output,
         shared_prot = "results/6_clustering/shared_content_taxonomy.txt",
         ani_cluster = "results/7_ANI/ani_genus_species_taxonomy.txt"
     output:
-        "results/crassus_results.txt"
+        "results/aggregated_signals.txt"
     conda:
         "../../envs/utils.yaml"
     script:
-        "../../scripts/final_table.py"
+        "../../scripts/aggregate_signals.py"
+
+
+rule prefinal_table:
+    input:
+        rules.aggregate_signals.output,
+        dtr_blast_done = gather_dtr
+    output:
+        "results/prefinal_table.txt"
+    params:
+        lengths = "resources/taxas_average_length.txt"
+    conda:
+        "../../envs/utils.yaml"
+    script:
+        "../../scripts/prefinal_table.py"
+
+
+# rule assess_completeness:
+#     input:
+#         taxa_markers = rules.parse_trees.output,
+#
+#     output:
+#         "results/5_phylogenies/taxonomic_classification_completeness.txt"
+#     params:
+#         lengths = "resources/taxas_average_length.txt"
+#     conda:
+#         "../../envs/phylogenies.yaml"
+#     script:
+#         "../../scripts/assess_completeness.py"
+
+
+
+
+
+
 
 # rule aggregate_taxa_sources:
 #     input:

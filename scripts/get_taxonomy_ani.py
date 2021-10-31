@@ -43,7 +43,7 @@ anicalc_genomes = list(set(anicalc_df.index.tolist()))
 
 
 # iterate the assignments table again and the anicalc table to get the most similar ref genome, store in a dict
-most_similars = {line[0]:{"most_similar_genome":str(), "most_similar_ref":str()} for line in lines}
+most_similars = {line[0]:{"most_similar_genome":str(), "most_similar_ref":str(), "AF":0} for line in lines}
 
 for line in lines:
     qgenome = line[0]
@@ -61,7 +61,8 @@ for line in lines:
         most_similars[qgenome]["most_similar_genome"] = genome_df.index[0]
         for tgenome in genome_df.index:
             if tgenome in crass_taxonomy:
-                most_similars[qgenome]["most_similar_ref"] = f'{crass_taxonomy[tgenome]} ({genome_df.loc[tgenome, "qcov"]})'
+                most_similars[qgenome]["most_similar_ref"] = crass_taxonomy[tgenome]
+                most_similars[qgenome]["AF"] = genome_df.loc[tgenome, "qcov"]
                 break
 
 
@@ -79,9 +80,10 @@ for line in lines:
         # if so, add the most similar ref genus
         else:
             print(qgenome, ", multiple ref genus in the genid")
-            to_add.append(most_similars[qgenome]["most_similar_ref"].split(" (")[0])
+            to_add.append(most_similars[qgenome]["most_similar_ref"])
 
         to_add.append(most_similars[qgenome]["most_similar_ref"])
+        to_add.append(most_similars[qgenome]["AF"])
 
         # assign species
         if line[2] in spid_ref:
@@ -93,5 +95,5 @@ for line in lines:
         to_write.append(to_add)
 
 
-to_write_df = pd.DataFrame(to_write, columns=["genome", "genus", "most_similar_ref","species"])
+to_write_df = pd.DataFrame(to_write, columns=["genome", "genus", "most_similar_ref", "AF", "species"])
 to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")

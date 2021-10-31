@@ -1,15 +1,19 @@
 sample_sheet: config/samples_all.tsv
 
+
 mafft_msa:
   einsi: False
+
 
 phylogenies:
   TerL: True
   MCP: True
   portal: True
 
-shared_genus_cutoff: 0.65
 
+shared_prots_cutoffs:
+  family: 20
+  genus: 65
 
 
 plot:

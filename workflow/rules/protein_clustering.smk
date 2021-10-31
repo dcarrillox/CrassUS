@@ -46,7 +46,7 @@ rule calculate_shared_prots:
 rule protein_content_taxa:
     input:
         matrix_shared = rules.calculate_shared_prots.output.shared,
-        markers_table = "results/5_phylogenies/taxonomic_classification_completeness.txt"
+        markers_table = "results/5_phylogenies/taxonomic_classification.txt"
     output:
         "results/6_clustering/shared_content_taxonomy.txt"
     params:
