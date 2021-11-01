@@ -57,13 +57,23 @@ if config["mafft_msa"]["einsi"]:
             ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
         output:
             "results/5_phylogenies/1_MSAs/{marker}.msa"
-        threads: 9999
+        threads: 10
         conda:
             "../../envs/phylogenies.yaml"
         log:
             "logs/msa_alignment/{marker}.log"
         shell:
-            "time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
+            '''
+            nseqs=$(grep -c ">" {input.found})
+            if [[ $nseqs -gt 2000 ]]
+            then
+                echo "More than 2K sequences, running MAFTT AUTO instead..."
+                time mafft --auto --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+            else
+                time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+            fi
+            '''
+            #"time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
 else:
     rule multiple_sequence_alignment_fftnsi:
         input:
@@ -71,13 +81,23 @@ else:
             ref   = "resources/MSAs/{marker}_crassphage_reference.mafft-einsi"
         output:
             "results/5_phylogenies/1_MSAs/{marker}.msa"
-        threads: 9999
+        threads: 10
         conda:
             "../../envs/phylogenies.yaml"
         log:
             "logs/msa_alignment/{marker}.log"
         shell:
-            "time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
+            '''
+            nseqs=$(grep -c ">" {input.found})
+            if [[ $nseqs -gt 2000 ]]
+            then
+                echo "More than 2K sequences, running MAFTT AUTO instead..."
+                time mafft --auto --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+            else
+                time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+            fi
+            '''
+            #"time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
 
 rule msa_trimming:
     input:

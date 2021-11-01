@@ -36,3 +36,4 @@ tree_fig*.svg
 *.png
 mafft_iqtree_test*
 trees_benchmark*
+writing/reference_genomes_tables_clusters
