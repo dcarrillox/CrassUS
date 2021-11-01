@@ -131,3 +131,5 @@ def gather_gggenomes(wildcards):
 def generate_plots(wildcards):
     if config["plot"]["generate_plots"]:
         return "results/7_ANI/.gggenomes_done"
+    else:
+        return "results/prefinal_table.txt"

@@ -80,7 +80,8 @@ rule create_genome_table:
     input:
         gff = "results/4_ORF/1_best_coding/{prots}.gff",
         faa = "results/4_ORF/1_best_coding/{prots}.faa",
-        hmmtxt = rules.annotate_proteins_best_coding.output.outfile
+        hmmtxt = rules.annotate_proteins_best_coding.output.outfile,
+        prots_clusters = "results/6_clustering/table_clustering_ids.tsv"
     output:
         "results/4_ORF/2_functional_annot_tables/{prots}.table"
     params:

@@ -1,8 +1,13 @@
 from Bio import SearchIO, SeqIO
+import pandas as pd
 
 # start by reading the .faa file to get the the protein identifiers.
 # store them along its n position in the genome
 n_protein_ids = {record.id.split('|')[-1]:record.id for record in SeqIO.parse(snakemake.input.faa, "fasta")}
+
+# read clusters_prots and assign a cluster_id to proteins, if they were part of a cluster
+clusters_prots = {line.strip().split("\t")[1]:line.split("\t")[0] for line in open(snakemake.input.prots_clusters).readlines()[1:]}
+
 
 # parse annotation with Yutin profiles
 records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
@@ -38,7 +43,7 @@ for protein, hits in yutin_annot.items():
 
 
 # read gff file and create the genome table on the run
-final_table = [["protein_id", "genome", "start", "end", "strand", "partial", "yutin"]]
+final_table = [["protein_id", "genome", "start", "end", "strand", "partial", "yutin", "cluster"]]
 
 lines = [line.strip().split("\t") for line in open(snakemake.input.gff) if not line.startswith("#")]
 for line in lines:
@@ -57,7 +62,13 @@ for line in lines:
     else:
         partial = "True"
 
-    final_table.append([protein_id, protein_id.split("|")[0], start, stop, strand, partial, yutin])
+
+    # check if the protein is in a cluster
+    cluster_id = ""
+    if protein_id in clusters_prots:
+        cluster_id = clusters_prots[protein_id]
+
+    final_table.append([protein_id, protein_id.split("|")[0], start, stop, strand, partial, yutin, cluster_id])
 
 
 # write to output file

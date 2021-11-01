@@ -36,7 +36,7 @@ rule calculate_shared_prots:
         presabs = "results/6_clustering/presabs_matrix.txt",
         shared  = "results/6_clustering/shared_content_matrix.txt",
         nprots  = "results/6_clustering/nprots_cluster.txt",
-        cluster_ids = "results/6_clustering/cluster_ids.txt"
+        table_clustering_ids = "results/6_clustering/table_clustering_ids.tsv"
     params:
         taxonomy = "resources/crass_taxonomy.txt"
     threads: 999

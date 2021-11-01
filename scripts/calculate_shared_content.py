@@ -25,10 +25,20 @@ for line in lines:
     if int(line[0]) > 1:
         cont += 1
         cluster_ids[line[1]] = f"cluster_{cont}"
-# write old and new cluster_id to file
-with open(snakemake.output.cluster_ids, "w") as fout:
-    for cluster in cluster_ids:
-        fout.write(f"{cluster}\t{cluster_ids[cluster]}\n")
+
+# write new table_clustering_ids.tsv file, which is like the original table_clustering.tsv
+# file but with the representative replaced by the cluster_id. Another difference is that
+# it only contains clusters with more than two sequences
+print("Annotating 'table_clustering.tsv' with cluster_ids...")
+
+cluster_ids_set = set(list(cluster_ids.keys()))
+prots_clusters = [line.strip().split("\t") for line in open(snakemake.input.tsv).readlines() if line.split("\t")[0] in cluster_ids_set]
+to_write = [[cluster_ids[prot[0]], prot[1]] for prot in prots_clusters]
+
+to_write_df = pd.DataFrame(to_write, columns=["cluster_id", "protein"]).set_index("cluster_id")
+to_write_df.to_csv(snakemake.output.table_clustering_ids, sep="\t")
+
+print("done")
 
 
 # init an empty dataframe, rows are the clusters and columns the genomes
