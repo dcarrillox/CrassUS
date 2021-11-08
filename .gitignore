@@ -36,4 +36,7 @@ tree_fig*.svg
 *.png
 mafft_iqtree_test*
 trees_benchmark*
-writing/reference_genomes_tables_clusters
+writing/*
+!writing/ggtree_test.R
+!writing/gggenomes_lab_meeting.R
+!wrting/*.ipynb
