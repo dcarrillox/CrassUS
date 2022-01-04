@@ -3,12 +3,12 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        generate_plots,
-        "results/6_clustering/shared_content_taxonomy.txt",
+        #generate_plots,
+        #"results/6_clustering/shared_content_taxonomy.txt",
         #"results/7_ANI/ani_genus_species_taxonomy.txt",
         #"results/crassus_results.txt"
-        "results/aggregated_signals.txt",
-        "results/prefinal_table.txt",
+        #"results/aggregated_signals.txt",
+        #"results/prefinal_table.txt",
         "results/4_ORF/2_functional_annot_tables/.finished"
 
 

@@ -1,4 +1,4 @@
-sample_sheet: config/samples_all.tsv
+sample_sheet: database_update/samples.tsv
 
 
 mafft_msa:
