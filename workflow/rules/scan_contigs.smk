@@ -2,11 +2,11 @@ rule translate_six_frames:
     input:
         rules.filter_rename_assemblies.output.fasta
     output:
-        "results/2_six_frames/0_faa/{sample}.faa"
+        f"results/{ANALYSIS_ID}" + "/2_six_frames/0_faa/{sample}.faa"
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     log:
-        "logs/sixframes_transeq/{sample}.log"
+        f"logs/{ANALYSIS_ID}" + "/sixframes_transeq/{sample}.log"
     shell:
         '''
         size=$(stat --printf="%s" {input})
@@ -21,13 +21,12 @@ rule translate_six_frames:
 rule hmmsearch_six_frames:
     input:
         fasta = rules.translate_six_frames.output,
-        #profile = "resources/yutin_2021/scan_contigs/crass_conserved_genes.hmm.h3f"
-        profile = "resources/marker_profiles/custom_yutin_markers.hmm.h3f"
+        profile = "resources/crassus_dependencies/marker_profiles/custom_yutin_markers.hmm.h3f"
     output:
-        outfile = "results/2_six_frames/1_screening/{sample}.hmmtxt",
-        domtblout = "results/2_six_frames/1_screening/{sample}.domtxt"
+        outfile = f"results/{ANALYSIS_ID}" + "/2_six_frames/1_screening/{sample}.hmmtxt",
+        domtblout = f"results/{ANALYSIS_ID}" + "/2_six_frames/1_screening/{sample}.domtxt"
     log:
-        "logs/hmmsearch/sixframes/{sample}.log"
+        f"logs/{ANALYSIS_ID}" + "/hmmsearch/sixframes/{sample}.log"
     params:
         evalue_threshold=0.001,
         # if bitscore threshold provided, hmmsearch will use that instead
@@ -39,26 +38,27 @@ rule hmmsearch_six_frames:
 
 rule parse_hmmsearch_six_frames:
     input:
-        expand("results/2_six_frames/1_screening/{sample}.hmmtxt", sample=sample_sheet.index)
+        expand(f"results/{ANALYSIS_ID}" + "/2_six_frames/1_screening/{sample}.hmmtxt",
+               sample=sample_sheet.index)
     output:
-        hits_table = "results/2_six_frames/profiles_hits.txt",
-        contigs    = "results/2_six_frames/matching_contigs.txt"
+        hits_table = f"results/{ANALYSIS_ID}" + "/2_six_frames/profiles_hits.txt",
+        contigs    = f"results/{ANALYSIS_ID}" + "/2_six_frames/matching_contigs.txt"
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     script:
-        "../../scripts/parse_hmmsearch_six_frames.py"
+        "../scripts/parse_hmmsearch_six_frames.py"
 
 checkpoint get_matching_contigs:
     input:
         rules.parse_hmmsearch_six_frames.output.contigs
     output:
-        directory("results/3_crass_contigs/"),
-        fastani_list = "resources/fastANI_genomes.list"
+        directory(f"results/{ANALYSIS_ID}/3_crass_contigs/"),
+        #fastani_list = "resources/fastANI_genomes.list"
     params:
-        assemblies_dir = "results/1_rename",
-        contigs_dir =    "results/3_crass_contigs",
-        genomes_list = "resources/genomes/genomes.list",
+        assemblies_dir = f"results/{ANALYSIS_ID}/1_rename",
+        contigs_dir =    f"results/{ANALYSIS_ID}/3_crass_contigs",
+        #genomes_list = "resources/genomes/genomes.list",
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     script:
-        "../../scripts/get_matching_contigs.py"
+        "../scripts/get_matching_contigs.py"

@@ -1,5 +1,5 @@
-sample_id	fasta
-Baboon19	/home/danielc/danielc2/ancient_microbiomes/results/2_assembly/Baboon19/Baboon19.contigs.fa
-Chimp20	/home/danielc/danielc2/ancient_microbiomes/results/2_assembly/Chimp20/Chimp20.contigs.fa
-#Dunia_s_4	/home/danielc/danielc2/ancient_microbiomes/results/2_assembly/Dunia_s_4/Dunia_s_4.contigs.fa
-#ERR1094777	/home/danielc/danielc2/ancient_microbiomes/results/2_assembly/ERR1094777/ERR1094777.contigs.fa
+analysis_id	sample_id	fasta
+test_data	MK892754	/home/dani/Projects/Bas/CrassUS/test_genomes/MK892754.1.fasta
+test_data	MK892757	/home/dani/Projects/Bas/CrassUS/test_genomes/MK892757.1.fasta
+test_data	OJNS01000048	/home/dani/Projects/Bas/CrassUS/test_genomes/OJNS01000048.fasta
+test_data	OLQR01000043	/home/dani/Projects/Bas/CrassUS/test_genomes/OLQR01000043.fasta

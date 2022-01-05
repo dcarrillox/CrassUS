@@ -1,5 +1,5 @@
 import pandas as pd
-import glob, os
+import glob, os, sys
 from snakemake.utils import validate
 from snakemake.utils import min_version
 
@@ -12,16 +12,58 @@ report: "report/workflow.rst"
 sample_sheet = pd.read_table(config["sample_sheet"], comment='#').set_index("sample_id", drop=False)
 # replace underscores in the samples_id by hyphen
 sample_sheet.index = sample_sheet.index.str.replace('_','-')
+# check there is only one analysis_id
+analysis_ids = list(set(sample_sheet.analysis_id.tolist()))
+if len(analysis_ids) > 1:
+    print(f"More than one 'analysis_id' in the sample sheet '{os.path.basename(config['sample_sheet'])}':")
+    for id in analysis_ids:
+        print(f"\t- {id}")
+    print("Please run only one analysis each time. Exiting...")
+    sys.exit()
+else:
+    ANALYSIS_ID = analysis_ids[0]
+    SAMPLES=sample_sheet.index.tolist()
+
 #print(sample_sheet.index) # comment when running --dag
+
 
 ###### Wildcard constraints ######
 wildcard_constraints:
     sample="|".join(sample_sheet.index),
-    sample_transeq="|".join(sample_sheet.index)
+    sample_transeq="|".join(sample_sheet.index),
+
+
+########## Check reference db ############
+if not os.path.isfile("./resources/crassus_dependencies/version"):
+    print("Setting up reference database and dependencies...")
+
+    # replace by Zenodo download
+    os.system("cp -r crassus_dependencies/ resources")
+    print("Done")
 
 
 
 ###### Helper functions ######
+def get_raw_assemblies(wildcards): # used
+    return sample_sheet["fasta"][wildcards.sample]
+
+def aggregate_densities(wildcards): #used
+    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
+    annotation_files = expand(f"results/{ANALYSIS_ID}" + "/4_ORF/0_all_codings/{contig}_{prod_ext}",
+                      contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                      prod_ext=prodigal_ext
+                      )
+    return annotation_files
+
+def get_prots_files(wildcards): # used
+    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
+    prots_files = expand(f"results/{ANALYSIS_ID}" + "/4_ORF/1_best_coding/{prots}.faa",
+                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
+                      )
+    return prots_files
+
+
+
 def gather_genomes_blastall(wildcards):
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
     crassus_fasta = expand("results/3_crass_contigs/{contig}.fasta",
@@ -30,8 +72,7 @@ def gather_genomes_blastall(wildcards):
     ref_genomes = glob.glob("resources/genomes/*.fasta")
     return crassus_fasta + ref_genomes
 
-def get_raw_assemblies(wildcards):
-    return sample_sheet["fasta"][wildcards.sample]
+
 
 def aggregate_best_codings(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
@@ -42,20 +83,8 @@ def aggregate_best_codings(wildcards):
                         )
     return best_codings
 
-def aggregate_densities(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    annotation_files = expand("results/4_ORF/0_all_codings/{contig}_{prod_ext}",
-                      contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                      prod_ext=prodigal_ext
-                      )
-    return annotation_files
 
-def get_prots_files(wildcards):
-    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    prots_files = expand("results/4_ORF/1_best_coding/{prots}.faa",
-                      prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
-                      )
-    return prots_files
+
 
 def get_markers_files(wildcards):
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
