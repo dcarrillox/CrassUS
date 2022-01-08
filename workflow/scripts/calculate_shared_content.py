@@ -103,10 +103,11 @@ print(f"Calculating shared content with {snakemake.threads} CPUs...")
 # prepare the partial function
 part = partial(compute_genome_shared, all_genomes, genomes_clusters, genomes_totalp)
 
-contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake.input.prots_files])
-
 pool = multiprocessing.Pool(processes=snakemake.threads)
-shared_content = pool.map(part, contigs)
+# calculate sharing for all the genomes instead, found + ref
+#contigs = sorted([os.path.basename(prot).split("_tbl-")[0] for prot in snakemake.input.prots_files])
+#shared_content = pool.map(part, contigs)
+shared_content = pool.map(part, all_genomes)
 pool.close()
 pool.join()
 
@@ -150,17 +151,19 @@ print("done")
 # just before writing, add taxonomy of the reference
 # read reference taxonomy
 crass_taxonomy = dict()
-lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()]
+lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()[1:]]
 for line in lines:
-    crass_taxonomy[line[0]] = {"family":line[2], "subfamily":line[3], "genus":line[4]}
+    crass_taxonomy[line[0]] = {"family":line[1], "subfamily":line[2], "genus":line[3], "species":line[4]}
 
 for tgenome in df2.index:
     if tgenome in crass_taxonomy:
         df2.loc[tgenome, "family"] = crass_taxonomy[tgenome]["family"]
         df2.loc[tgenome, "subfamily"] = crass_taxonomy[tgenome]["subfamily"]
         df2.loc[tgenome, "genus"] = crass_taxonomy[tgenome]["genus"]
+        df2.loc[tgenome, "species"] = crass_taxonomy[tgenome]["species"]
 
-taxa_columns = ["family", "subfamily", "genus"]
+
+taxa_columns = ["family", "subfamily", "genus", "species"]
 df2 = df2[taxa_columns + [ col for col in df2.columns if col not in taxa_columns]]
 
 

@@ -55,34 +55,44 @@ to_write = {genome :{"genome": genome,
 
 def get_markers_annot(genome, markers, df):
     exclude = ["not_found", "too_short"]
-    family    = list(set([df.loc[genome, f"family_{marker}"] for marker in markers if df.loc[genome, f"family_{marker}"] not in exclude]))
-    subfamily = list(set([df.loc[genome, f"subfamily_{marker}"] for marker in markers if df.loc[genome, f"subfamily_{marker}"] not in exclude]))
+    families    = list(set([df.loc[genome, f"family_{marker}"] for marker in markers if df.loc[genome, f"family_{marker}"] not in exclude]))
+    subfamilies = list(set([df.loc[genome, f"subfamily_{marker}"] for marker in markers if df.loc[genome, f"subfamily_{marker}"] not in exclude]))
+    genera      = list(set([df.loc[genome, f"genus_{marker}"] for marker in markers if df.loc[genome, f"genus_{marker}"] not in exclude]))
 
-    if len(family) == 1:
-        # check if it is unknown by marker
-        if family[0] == "unknown":
-            return "unknown", "unknown"
-        elif subfamily[0] == "unknown":
-            return family[0], "unknown"
-        else:
-            return family[0], subfamily[0]
+    family = str()
+    subfam = str()
+    genus  = str()
 
+    # check family by markers
+    if len(families) == 1:
+        family = families[0] if families[0] != "unknown" else "unknown"
     else:
-        if "unknown" in family:
-            family.remove("unknown")
-        if "unknown" in subfamily:
-            subfamily.remove("unknown")
+        if "unknown" in families:
+            families.remove("unknown")
+        family = families[0] if len(families) == 1 else f"multiple_families ({'.'.join(families)})"
 
-        if family and not subfamily:
-            return family[0], "unknown"
-        elif family and subfamily:
-            return family[0], subfamily[0]
-        else:
-            return "", ""
+    # check subfamily by markers
+    if len(subfamilies) == 1:
+        subfam = subfamilies[0] if subfamilies[0] != "unknown" else "unknown"
+    else:
+        if "unknown" in subfamilies:
+            subfamilies.remove("unknown")
+        subfam = subfamilies[0] if len(subfamilies) == 1 else f"multiple_subfamilies ({'.'.join(subfamilies)})"
+
+    # check genus by markers
+    if len(genera) == 1:
+        genus = genera[0] if genera[0] != "unknown" else "unknown"
+    else:
+        if "unknown" in genera:
+            genera.remove("unknown")
+        genus = genera[0] if len(genera) == 1 else f"multiple_genera ({'.'.join(genera)})"
+
+
+    return family, subfamily, genus
 
 
 def family_by_shared(genome, df):
-    if df.loc[genome, "prot_ref"] >= 20:
+    if df.loc[genome, "prot_ref"] >= snakemake.config["shared_prots_cutoffs"]["family"]:
         families = df.loc[genome, "prot_most_similar_ref_family"].split(",")
         return families
     else:
@@ -112,7 +122,7 @@ def assess_genus(genome, df):
 for genome in aggregated_df.index:
     genome_length = float(genome.split("_")[-1])
     # get family and subfamily from markers
-    marker_fam, marker_subfam = get_markers_annot(genome, markers, aggregated_df)
+    marker_fam, marker_subfam, marker_genus = get_markers_annot(genome, markers, aggregated_df)
 
     # check if shared prot validates the marker assignment
     # to_write[genome]["family"] = marker_fam

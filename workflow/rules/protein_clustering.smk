@@ -40,7 +40,7 @@ rule calculate_shared_prots:
         nprots  = f"results/{ANALYSIS_ID}" + "/6_clustering/nprots_cluster.txt",
         table_clustering_ids = f"results/{ANALYSIS_ID}" + "/6_clustering/table_clustering_ids.tsv"
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy.txt" # TO SET
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt" # TO SET
     threads: 999
     conda:
         "../envs/utils.yaml"
@@ -50,12 +50,12 @@ rule calculate_shared_prots:
 rule protein_content_taxa:
     input:
         matrix_shared = rules.calculate_shared_prots.output.shared,
-        markers_table = "results/5_phylogenies/taxonomic_classification.txt"
+        markers_table = f"results/{ANALYSIS_ID}" + "/5_phylogenies/taxonomic_classification.txt"
     output:
-        "results/6_clustering/shared_content_taxonomy.txt"
+        f"results/{ANALYSIS_ID}" + "/6_clustering/shared_content_taxonomy.txt"
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     conda:
-        "../../envs/phylogenies.yaml"
+        "../envs/phylogenies.yaml"
     script:
-        "../../scripts/taxonomy_from_clustering.py"
+        "../scripts/taxonomy_from_clustering.py"

@@ -1,61 +1,59 @@
 rule run_DTR_blast:
     input:
-        "results/3_crass_contigs/{contig}.fasta"
+        f"results/{ANALYSIS_ID}" + "/3_crass_contigs/{contig}.fasta"
     output:
-        temp(multiext("results/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
-        blast = "results/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
+        temp(multiext(f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
+        blast = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
         #done = temp("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done")
-        done = "results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
+        done = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
     params:
-        tmp_fasta = "results/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
-        tmp_db = "results/3_crass_contigs/dtr_blast/{contig}.dtr_db"
+        tmp_fasta = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
+        tmp_db = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_db"
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     log:
-        makedb = "logs/dtr/{contig}_makedb.log",
-        blast  = "logs/dtr/{contig}_blast.log"
+        makedb = f"logs/{ANALYSIS_ID}" + "/dtr/{contig}_makedb.log",
+        blast  = f"logs/{ANALYSIS_ID}" + "/dtr/{contig}_blast.log"
     script:
-        "../../scripts/run_DTR_blast.py"
+        "../scripts/run_DTR_blast.py"
 
 rule parse_trees:
     input:
         markers_trees = gather_trees,
-        markers_summary = "results/5_phylogenies/markers.summary"
+        markers_summary = f"results/{ANALYSIS_ID}" + "/5_phylogenies/markers.summary"
     output:
-        "results/5_phylogenies/taxonomic_classification.txt",
+        f"results/{ANALYSIS_ID}" + "/5_phylogenies/taxonomic_classification.txt",
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     conda:
-        "../../envs/phylogenies.yaml"
+        "../envs/phylogenies.yaml"
     script:
-        "../../scripts/get_taxonomy_from_trees.py"
-
+        "../scripts/get_taxonomy_from_trees.py"
 
 rule aggregate_signals:
     input:
         phylogenies = rules.parse_trees.output,
-        shared_prot = "results/6_clustering/shared_content_taxonomy.txt",
-        ani_cluster = "results/7_ANI/ani_genus_species_taxonomy.txt"
+        shared_prot = f"results/{ANALYSIS_ID}" + "/6_clustering/shared_content_taxonomy.txt",
+        ani_cluster = f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species_taxonomy.txt"
     output:
-        "results/aggregated_signals.txt"
+        f"results/{ANALYSIS_ID}" + "/aggregated_signals.txt"
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     script:
-        "../../scripts/aggregate_signals.py"
-
+        "../scripts/aggregate_signals.py"
 
 rule prefinal_table:
     input:
         rules.aggregate_signals.output,
         dtr_blast_done = gather_dtr
     output:
-        "results/prefinal_table.txt"
+        f"results/{ANALYSIS_ID}" + "/prefinal_table.txt"
     params:
-        lengths = "resources/taxas_average_length.txt"
+        lengths = "resources/crassus_dependencies/taxas_average_length.txt"
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     script:
-        "../../scripts/prefinal_table.py"
+        "../scripts/prefinal_table.py"
 
 
 # rule assess_completeness:

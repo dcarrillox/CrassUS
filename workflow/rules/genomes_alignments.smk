@@ -3,13 +3,13 @@ rule blast_all:
         gather_genomes_blastall,
     output:
         #temp(multiext("results/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto"))
-        multiext("results/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
-        tsv = "results/7_ANI/0_species/all_genomes_ref_crassus_blast.tsv"
+        multiext(f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
+        tsv = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus_blast.tsv"
     params:
-        fasta_all = "results/7_ANI/0_species/all_genomes_ref_crassus.fasta",
-        db = "results/7_ANI/0_species/all_genomes_ref_crassus"
+        fasta_all = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus.fasta",
+        db = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     threads: 4
     shell:
         """
@@ -24,41 +24,41 @@ rule anicalc_species:
     input:
         rules.blast_all.output.tsv
     output:
-        "results/7_ANI/0_species/anicalc_results.tsv"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/anicalc_results.tsv"
     params:
-        script = "scripts/anicalc.py"
+        script = "workflow/scripts/anicalc.py"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     shell:
         "python {params.script} -i {input} -o {output}"
 
 rule aniclust_species:
     input:
         ani = rules.anicalc_species.output,
-        fasta_all = "results/7_ANI/0_species/all_genomes_ref_crassus.fasta"
+        fasta_all = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus.fasta"
     output:
-        "results/7_ANI/0_species/aniclust_species.tsv"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/aniclust_species.tsv"
     params:
-        script = "scripts/aniclust.py"
+        script = "workflow/scripts/aniclust.py"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     shell:
         "python {params.script} --out {output} --fna {input.fasta_all} --ani {input.ani} --min_ani 95 --min_tcov 85 --min_qcov 0"
 
 rule blast_representatives:
     input:
         aniclust = rules.aniclust_species.output,
-        fasta_all = "results/7_ANI/0_species/all_genomes_ref_crassus.fasta"
+        fasta_all = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus.fasta"
     output:
         #temp(multiext("results/7_ANI/1_genus/repr_genomes.", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto"))
-        multiext("results/7_ANI/1_genus/repr_genomes.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
-        tsv = "results/7_ANI/1_genus/repr_genomes_blast.tsv",
+        multiext(f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
+        tsv = f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes_blast.tsv",
     params:
-        repr_ids = "results/7_ANI/1_genus/repr_genomes.ids",
-        fasta_repr = "results/7_ANI/1_genus/repr_genomes.fasta",
-        db = "results/7_ANI/1_genus/repr_genomes"
+        repr_ids = f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes.ids",
+        fasta_repr = f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes.fasta",
+        db = f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     threads: 4
     shell:
         """
@@ -74,24 +74,24 @@ rule anicalc_genus:
     input:
         rules.blast_representatives.output.tsv
     output:
-        "results/7_ANI/1_genus/anicalc_results.tsv"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/anicalc_results.tsv"
     params:
-        script = "scripts/anicalc.py"
+        script = "workflow/scripts/anicalc.py"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     shell:
         "python {params.script} -i {input} -o {output}"
 
 rule aniclust_genus:
     input:
         ani = rules.anicalc_genus.output,
-        fasta_repr = "results/7_ANI/1_genus/repr_genomes.fasta"
+        fasta_repr = f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/repr_genomes.fasta"
     output:
-        "results/7_ANI/1_genus/aniclust_genus.tsv"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/1_genus/aniclust_genus.tsv"
     params:
-        script = "scripts/aniclust.py"
+        script = "workflow/scripts/aniclust.py"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     shell:
         "python {params.script} --out {output} --fna {input.fasta_repr} --ani {input.ani} --min_ani 0 --min_tcov 50 --min_qcov 0"
 
@@ -99,36 +99,36 @@ rule get_sp_gen_clusters:
     input:
         sp =  rules.aniclust_species.output,
         gen = rules.aniclust_genus.output,
-        fasta_all = "results/7_ANI/0_species/all_genomes_ref_crassus.fasta"
+        fasta_all = f"results/{ANALYSIS_ID}" + "/7_ANI/0_species/all_genomes_ref_crassus.fasta"
     output:
-        "results/7_ANI/ani_genus_species.txt"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species.txt"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     script:
-        "../../scripts/create_species_genus_tables_aniclust.py"
+        "../scripts/create_species_genus_tables_aniclust.py"
 
-rule ani_assing_taxonomy:
+rule ani_assign_taxonomy:
     input:
         assignments = rules.get_sp_gen_clusters.output,
         anicalc = rules.anicalc_species.output
     output:
-        "results/7_ANI/ani_genus_species_taxonomy.txt"
+        f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species_taxonomy.txt"
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     conda:
-        "../../envs/compare_genomes.yaml"
+        "../envs/compare_genomes.yaml"
     script:
-        "../../scripts/get_taxonomy_ani.py"
+        "../scripts/get_taxonomy_ani.py"
 
 rule install_gggenomes:
     output:
-        done = "resources/.gggenomes_install_done"
+        done = "resources/crassus_dependencies/.gggenomes_install_done"
     conda:
-        "../../envs/plot_genomes.yaml"
+        "../envs/plot_genomes.yaml"
     log:
-        "logs/install_gggenomes.log"
+        f"logs/{ANALYSIS_ID}" + "/install_gggenomes.log"
     shell:
-        "Rscript scripts/install_gggenomes.R &> {log}"
+        "Rscript workflow/scripts/install_gggenomes.R &> {log}"
 
 checkpoint prepare_gggenomes_data:
     input:

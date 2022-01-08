@@ -62,44 +62,28 @@ def get_prots_files(wildcards): # used
                       )
     return prots_files
 
-
-
-def gather_genomes_blastall(wildcards):
-    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    crassus_fasta = expand("results/3_crass_contigs/{contig}.fasta",
-                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
-                    )
-    ref_genomes = glob.glob("resources/genomes/*.fasta")
-    return crassus_fasta + ref_genomes
-
-
-
-def aggregate_best_codings(wildcards):
+def get_markers_files(wildcards): # used
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    best_codings = expand(
-                        "results/4_ORF/1_best_coding/{best_coding}.{ext}",
-                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
-                        ext=["faa", "gff"]
-                        )
-    return best_codings
-
-
-
-
-def get_markers_files(wildcards):
-    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
-    markers_summary_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary",
+    markers_summary_files = expand(f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
-    markers_faa_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
+    markers_faa_files = expand(f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
-    markers_hmmtxt_files = expand("results/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
+    markers_hmmtxt_files = expand(f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
                       prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
                       )
     return markers_summary_files + markers_faa_files + markers_hmmtxt_files
 
-def gather_trees(wildcards):
+def gather_genomes_blastall(wildcards): # used
+    checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
+    crassus_fasta = expand(f"results/{ANALYSIS_ID}" + "/3_crass_contigs/{contig}.fasta",
+                    contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
+                    )
+    ref_genomes = glob.glob("resources/crassus_dependencies/genomes/*.fasta")
+    return crassus_fasta + ref_genomes
+
+def gather_trees(wildcards): # used
     # check the config file to know which markers are requested for the trees
     config_markers = list()
     for marker in config["phylogenies"]:
@@ -113,22 +97,40 @@ def gather_trees(wildcards):
     # as final, take the intersection between the given by the checpoint and the requested from the config file
     final_markers = [marker for marker in checkpoint_markers if marker in config_markers]
 
-    tree_files = expand("results/5_phylogenies/2_trees/{marker}_trimmed.nwk",
+    tree_files = expand(f"results/{ANALYSIS_ID}" + "/5_phylogenies/2_trees/{marker}_trimmed.nwk",
                     marker=final_markers
                     )
-    dist_files = expand("results/5_phylogenies/2_trees/{marker}_trimmed.dist",
+    dist_files = expand(f"results/{ANALYSIS_ID}" + "/5_phylogenies/2_trees/{marker}_trimmed.dist",
                     marker=final_markers
                     )
 
     print(final_markers)
     return tree_files
 
-def gather_dtr(wildcards):
+def gather_dtr(wildcards): # used
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]
-    dtr = expand("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done",
+    dtr = expand(f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done",
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
     return dtr
+    
+def aggregate_best_codings(wildcards):
+    checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
+    best_codings = expand(
+                        "results/4_ORF/1_best_coding/{best_coding}.{ext}",
+                        best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
+                        ext=["faa", "gff"]
+                        )
+    return best_codings
+
+
+
+
+
+
+
+
+
 
 # the name of this function needs to be different and make clear that it aggregates
 # results from several steps. "contigs" is too vague
