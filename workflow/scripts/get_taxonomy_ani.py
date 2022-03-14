@@ -17,50 +17,60 @@ for line in lines:
     if line[0] in crass_taxonomy:
         genid_ref[line[1]] += [crass_taxonomy[line[0]][0]]
 
-# get which genids contain more than one ref genus
-multiple_ref_gen = list()
-for genid, ref_genera in genid_ref.items():
-    if ref_genera:
-        uniq = list(set(ref_genera))
-        if len(uniq) > 1:
-            multiple_ref_gen.append(genid)
-        else:
-            genid_ref[genid] = uniq[0]
-    else:
-        genid_ref[genid] = genid
-
-
 # do the same for the species rank
-spid_ref = = {line[2]:list() for line in lines}
+spid_ref = {line[2]:list() for line in lines}
 for line in lines:
     if line[0] in crass_taxonomy:
         spid_ref[line[2]] += [crass_taxonomy[line[0]][1]]
 
-# get which genids contain more than one ref species
-multiple_ref_sp = list()
-for genid, ref_sps in spid_ref.items():
-    if ref_sps:
-        uniq = list(set(ref_sps))
-        if len(uniq) > 1:
-            multiple_ref_sp.append(genid)
-        else:
-            spid_ref[genid] = uniq[0]
-    else:
-        spid_ref[genid] = genid
-
-
 # read anicalc table so I can get later the most similar ref genome
 anicalc_df = pd.read_csv(snakemake.input.anicalc[0], sep="\t", header=0, index_col=0)
-anicalc_genomes = list(set(anicalc_df.index.tolist()))
+anicalc_genomes = set(anicalc_df.index.tolist())
 
 
 # iterate the assignments table again and the anicalc table to get the most similar ref genome, store in a dict
-most_similars = {line[0]:{"most_similar_genome":str(), "most_similar_ref":str(), "AF":0} for line in lines}
+final_dict = {line[0]:
+                        {"genus_cluster":str(),
+                        "genus_names":str(),
+                        "species_cluster":str(),
+                        "species_names":str(),
+                        "most_similar_genome":str(),
+                        "most_similar_ref":str(),
+                        "ref_genus":str(),
+                        "ref_species":str(),
+                        "pid":str(),
+                        "qcov":0}
+                for line in lines if line[0] not in crass_taxonomy and line[0] in anicalc_genomes}
 
 for line in lines:
     qgenome = line[0]
-    # skip reference genomes
-    if qgenome not in crass_taxonomy and qgenome in anicalc_genomes:
+
+    if line[0] in final_dict:
+
+        final_dict[qgenome]["genus_cluster"] = line[1]
+        genus_names = list(set(genid_ref[line[1]]))
+        if genus_names:
+            if len(genus_names) == 1:
+                genus_name = genus_names[0]
+            else:
+                genus_name = ",".join(genus_names)
+        else:
+            genus_name = line[1]
+        final_dict[qgenome]["genus_names"] = genus_name
+
+
+        final_dict[qgenome]["species_cluster"] = line[2]
+        species_names = list(set(spid_ref[line[2]]))
+        if species_names:
+            if len(species_names) == 1:
+                species_name = species_names[0]
+            else:
+                species_name = ",".join(species_names)
+        else:
+            species_name = line[2]
+        final_dict[qgenome]["species_names"] = species_name
+
+
         # get the anicalc results for the genome, sort them by qcov
         genome_df = anicalc_df.loc[qgenome,]
         if len(genome_df.shape) == 1:
@@ -70,42 +80,55 @@ for line in lines:
         genome_df.set_index("tname", inplace=True)
 
         # iterate the target genomes and store the most similar genome and reference
-        most_similars[qgenome]["most_similar_genome"] = genome_df.index[0]
+        final_dict[qgenome]["most_similar_genome"] = genome_df.index[0]
         for tgenome in genome_df.index:
             if tgenome in crass_taxonomy:
-                most_similars[qgenome]["most_similar_ref"] = crass_taxonomy[tgenome][0]
-                most_similars[qgenome]["AF"] = genome_df.loc[tgenome, "qcov"]
+                final_dict[qgenome]["most_similar_ref"] = tgenome
+                final_dict[qgenome]["ref_genus"] = crass_taxonomy[tgenome][0]
+                final_dict[qgenome]["ref_species"] = crass_taxonomy[tgenome][1]
+                final_dict[qgenome]["pid"] = genome_df.loc[tgenome, "pid"]
+                final_dict[qgenome]["qcov"] = genome_df.loc[tgenome, "qcov"]
                 break
 
 
 
 
-# iterate the genomes again, this time noticing those genomes within a genid with several ref genera or species
+
+# # iterate the genomes again, this time noticing those genomes within a genid with several ref genera or species
+# to_write = list()
+# for line in lines:
+#     qgenome = line[0]
+#     if qgenome not in crass_taxonomy:
+#         to_add = [qgenome]
+#
+#         if line[1] not in multiple_ref_gen:
+#             to_add.append(genid_ref[line[1]])
+#         # if so, add the most similar ref genus
+#         else:
+#             print(qgenome, ", multiple ref genus in the genid")
+#             to_add.append(most_similars[qgenome]["most_similar_ref"])
+#
+#         to_add.append(most_similars[qgenome]["most_similar_ref"])
+#         to_add.append(most_similars[qgenome]["AF"])
+#
+#         # assign species
+#         if line[2] in spid_ref:
+#             to_add.append(spid_ref[line[2]])
+#         else:
+#             to_add.append(line[2])
+#
+#
+#         to_write.append(to_add)
+
+
+#to_write_df = pd.DataFrame(to_write, columns=["genome", "genus", "most_similar_ref", "AF", "species"])
+#to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")
+
 to_write = list()
-for line in lines:
-    qgenome = line[0]
-    if qgenome not in crass_taxonomy:
-        to_add = [qgenome]
+for genome, columns in final_dict.items():
+    to_add = [genome] + [final_dict[genome][column] for column in columns]
+    to_write.append(to_add)
 
-        if line[1] not in multiple_ref_gen:
-            to_add.append(genid_ref[line[1]])
-        # if so, add the most similar ref genus
-        else:
-            print(qgenome, ", multiple ref genus in the genid")
-            to_add.append(most_similars[qgenome]["most_similar_ref"])
-
-        to_add.append(most_similars[qgenome]["most_similar_ref"])
-        to_add.append(most_similars[qgenome]["AF"])
-
-        # assign species
-        if line[2] in spid_ref:
-            to_add.append(spid_ref[line[2]])
-        else:
-            to_add.append(line[2])
-
-
-        to_write.append(to_add)
-
-
-to_write_df = pd.DataFrame(to_write, columns=["genome", "genus", "most_similar_ref", "AF", "species"])
-to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")
+to_write_df = pd.DataFrame(to_write, columns=["genome"] + list(columns.keys()))
+to_write_df.set_index("genome", inplace=True)
+to_write_df.to_csv(snakemake.output[0], index=True, sep="\t")

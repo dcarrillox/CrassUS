@@ -63,32 +63,35 @@ def get_markers_annot(genome, markers, df):
     subfam = str()
     genus  = str()
 
-    # check family by markers
-    if len(families) == 1:
-        family = families[0] if families[0] != "unknown" else "unknown"
+    if families:
+        # check family by markers
+        if len(families) == 1:
+            family = families[0] if families[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in families:
+                families.remove("unknown")
+            family = families[0] if len(families) == 1 else f"multiple_families ({'.'.join(families)})"
+
+        # check subfamily by markers
+        if len(subfamilies) == 1:
+            subfam = subfamilies[0] if subfamilies[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in subfamilies:
+                subfamilies.remove("unknown")
+            subfam = subfamilies[0] if len(subfamilies) == 1 else f"multiple_subfamilies ({'.'.join(subfamilies)})"
+
+        # check genus by markers
+        if len(genera) == 1:
+            genus = genera[0] if genera[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in genera:
+                genera.remove("unknown")
+            genus = genera[0] if len(genera) == 1 else f"multiple_genera ({'.'.join(genera)})"
+
     else:
-        if "unknown" in families:
-            families.remove("unknown")
-        family = families[0] if len(families) == 1 else f"multiple_families ({'.'.join(families)})"
+        family, subfam, genus = "", "", ""
 
-    # check subfamily by markers
-    if len(subfamilies) == 1:
-        subfam = subfamilies[0] if subfamilies[0] != "unknown" else "unknown"
-    else:
-        if "unknown" in subfamilies:
-            subfamilies.remove("unknown")
-        subfam = subfamilies[0] if len(subfamilies) == 1 else f"multiple_subfamilies ({'.'.join(subfamilies)})"
-
-    # check genus by markers
-    if len(genera) == 1:
-        genus = genera[0] if genera[0] != "unknown" else "unknown"
-    else:
-        if "unknown" in genera:
-            genera.remove("unknown")
-        genus = genera[0] if len(genera) == 1 else f"multiple_genera ({'.'.join(genera)})"
-
-
-    return family, subfamily, genus
+    return family, subfam, genus
 
 
 def family_by_shared(genome, df):
