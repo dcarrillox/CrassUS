@@ -7,6 +7,7 @@ CrassUS - Crassvirales Uncovering Software
 ==========================================
 
 .. toctree::
+   :maxdepth: 2
    :caption: Getting started
 
    getting_started/overview
@@ -14,7 +15,7 @@ CrassUS - Crassvirales Uncovering Software
 
 
 .. toctree::
-  :caption: Execution
+   :caption: Execution
 
-  execution/configuration
-  execution/usage
+   execution/configuration
+   execution/usage
