@@ -3,6 +3,74 @@ import os
 
 # envs: utils.yaml
 
+def get_markers_annot(genome, markers, df):
+    exclude = ["not_found", "too_short"]
+    families    = list(set([df.loc[genome, f"family_{marker}"] for marker in markers if df.loc[genome, f"family_{marker}"] not in exclude]))
+    subfamilies = list(set([df.loc[genome, f"subfamily_{marker}"] for marker in markers if df.loc[genome, f"subfamily_{marker}"] not in exclude]))
+    genera      = list(set([df.loc[genome, f"genus_{marker}"] for marker in markers if df.loc[genome, f"genus_{marker}"] not in exclude]))
+
+    family = str()
+    subfam = str()
+    genus  = str()
+
+    if families:
+        # check family by markers
+        if len(families) == 1:
+            family = families[0] if families[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in families:
+                families.remove("unknown")
+            family = families[0] if len(families) == 1 else f"multiple_families ({'.'.join(families)})"
+
+        # check subfamily by markers
+        if len(subfamilies) == 1:
+            subfam = subfamilies[0] if subfamilies[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in subfamilies:
+                subfamilies.remove("unknown")
+            subfam = subfamilies[0] if len(subfamilies) == 1 else f"multiple_subfamilies ({'.'.join(subfamilies)})"
+
+        # check genus by markers
+        if len(genera) == 1:
+            genus = genera[0] if genera[0] != "unknown" else "unknown"
+        else:
+            if "unknown" in genera:
+                genera.remove("unknown")
+            genus = genera[0] if len(genera) == 1 else f"multiple_genera ({'.'.join(genera)})"
+
+    else:
+        family, subfam, genus = "", "", ""
+
+    return family, subfam, genus
+
+
+def family_by_shared(genome, df):
+    if df.loc[genome, "shared_prot_ref"] >= snakemake.config["shared_prots_cutoffs"]["family"]:
+        families = df.loc[genome, "prot_most_similar_ref_family"].split(",")
+        return families
+    else:
+        return list()
+
+
+def assess_genus(genome, df):
+    check = False
+    # check the prots shared are higher than the cutoff for the genus
+    if df.loc[genome, "shared_prot_ref"] >= float(snakemake.config["shared_prots_cutoffs"]["genus"]):
+        shared_genera = df.loc[genome, "prot_most_similar_ref_genus"].split(",")
+        # check the AF is higher than the cutoff
+        if df.loc[genome, "qcov"] >= 50:
+            # check if the genus called by AF agrees with one of the called by shared_prots
+            af_genus = df.loc[genome, "AF_most_similar_ref_genus"]
+            if af_genus in shared_genera:
+                genus = af_genus
+                check = True
+    if not check:
+        genus = df.loc[genome, "AF_genus"]
+
+    return genus
+
+
+
 # read DTR blast, store results to list
 dtr_genomes = list()
 for dtr_file in snakemake.input.dtr_blast_done:
@@ -53,71 +121,6 @@ to_write = {genome :{"genome": genome,
             for genome in aggregated_df.index}
 
 
-def get_markers_annot(genome, markers, df):
-    exclude = ["not_found", "too_short"]
-    families    = list(set([df.loc[genome, f"family_{marker}"] for marker in markers if df.loc[genome, f"family_{marker}"] not in exclude]))
-    subfamilies = list(set([df.loc[genome, f"subfamily_{marker}"] for marker in markers if df.loc[genome, f"subfamily_{marker}"] not in exclude]))
-    genera      = list(set([df.loc[genome, f"genus_{marker}"] for marker in markers if df.loc[genome, f"genus_{marker}"] not in exclude]))
-
-    family = str()
-    subfam = str()
-    genus  = str()
-
-    if families:
-        # check family by markers
-        if len(families) == 1:
-            family = families[0] if families[0] != "unknown" else "unknown"
-        else:
-            if "unknown" in families:
-                families.remove("unknown")
-            family = families[0] if len(families) == 1 else f"multiple_families ({'.'.join(families)})"
-
-        # check subfamily by markers
-        if len(subfamilies) == 1:
-            subfam = subfamilies[0] if subfamilies[0] != "unknown" else "unknown"
-        else:
-            if "unknown" in subfamilies:
-                subfamilies.remove("unknown")
-            subfam = subfamilies[0] if len(subfamilies) == 1 else f"multiple_subfamilies ({'.'.join(subfamilies)})"
-
-        # check genus by markers
-        if len(genera) == 1:
-            genus = genera[0] if genera[0] != "unknown" else "unknown"
-        else:
-            if "unknown" in genera:
-                genera.remove("unknown")
-            genus = genera[0] if len(genera) == 1 else f"multiple_genera ({'.'.join(genera)})"
-
-    else:
-        family, subfam, genus = "", "", ""
-
-    return family, subfam, genus
-
-
-def family_by_shared(genome, df):
-    if df.loc[genome, "prot_ref"] >= snakemake.config["shared_prots_cutoffs"]["family"]:
-        families = df.loc[genome, "prot_most_similar_ref_family"].split(",")
-        return families
-    else:
-        return list()
-
-
-def assess_genus(genome, df):
-    check = False
-    # check the prots shared are higher than the cutoff for the genus
-    if df.loc[genome, "prot_ref"] >= float(snakemake.config["shared_prots_cutoffs"]["genus"]):
-        shared_genera = df.loc[genome, "prot_most_similar_ref_genus"].split(",")
-        # check the AF is higher than the cutoff
-        if df.loc[genome, "AF"] >= 50:
-            # check if the genus called by AF agrees with one of the called by shared_prots
-            af_genus = df.loc[genome, "AF_most_similar_ref_genus"]
-            if af_genus in shared_genera:
-                genus = af_genus
-                check = True
-    if not check:
-        genus = df.loc[genome, "AF_genus"]
-
-    return genus
 
 
 

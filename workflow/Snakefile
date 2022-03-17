@@ -3,16 +3,16 @@ include: "rules/common.smk"
 rule all:
     input:
         generate_plots,
-        # expand([
-        #         "results/{analysis_id}/1_rename/{sample}.fasta",
-        #         "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt",
-        #         "results/{analysis_id}/2_six_frames/profiles_hits.txt",
-        #         "results/{analysis_id}/4_ORF/coding_summary.txt",
-        #         "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
-        #
-        #         #"results/{analysis_id}/5_phylogenies/taxonomic_classification.txt",
-        #         ],
-        #         sample=SAMPLES, analysis_id=ANALYSES_IDS)
+        expand([
+                "results/{analysis_id}/1_rename/{sample}.fasta",
+                "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt",
+                "results/{analysis_id}/2_six_frames/profiles_hits.txt",
+                "results/{analysis_id}/4_ORF/coding_summary.txt",
+                "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
+
+                "results/{analysis_id}/prefinal_table.txt"
+                ],
+                sample=SAMPLES, analysis_id=ANALYSES_IDS)
 
 
 
