@@ -1,28 +1,27 @@
 rule run_DTR_blast:
     input:
-        f"results/{ANALYSIS_ID}" + "/3_crass_contigs/{contig}.fasta"
+        "results/{analysis_id}/3_crass_contigs/{contig}.fasta"
     output:
-        temp(multiext(f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
-        blast = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
-        #done = temp("results/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done")
-        done = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
+        temp(multiext("results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
+        blast = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
+        done = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
     params:
-        tmp_fasta = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
-        tmp_db = f"results/{ANALYSIS_ID}" + "/3_crass_contigs/dtr_blast/{contig}.dtr_db"
+        tmp_fasta = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
+        tmp_db = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_db"
     conda:
         "../envs/utils.yaml"
     log:
-        makedb = f"logs/{ANALYSIS_ID}" + "/dtr/{contig}_makedb.log",
-        blast  = f"logs/{ANALYSIS_ID}" + "/dtr/{contig}_blast.log"
+        makedb = "logs/{analysis_id}/dtr/{contig}_makedb.log",
+        blast  = "logs/{analysis_id}/dtr/{contig}_blast.log"
     script:
         "../scripts/run_DTR_blast.py"
 
 rule parse_trees:
     input:
         markers_trees = gather_trees,
-        markers_summary = f"results/{ANALYSIS_ID}" + "/5_phylogenies/markers.summary"
+        markers_summary = "results/{analysis_id}/5_phylogenies/markers.summary"
     output:
-        f"results/{ANALYSIS_ID}" + "/5_phylogenies/taxonomic_classification.txt",
+        "results/{analysis_id}/5_phylogenies/taxonomic_classification.txt",
     params:
         taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     conda:
@@ -33,10 +32,10 @@ rule parse_trees:
 rule aggregate_signals:
     input:
         phylogenies = rules.parse_trees.output,
-        shared_prot = f"results/{ANALYSIS_ID}" + "/6_clustering/shared_content_taxonomy.txt",
-        ani_cluster = f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species_taxonomy.txt"
+        shared_prot = "results/{analysis_id}/6_clustering/shared_content_taxonomy.txt",
+        ani_cluster = "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt"
     output:
-        f"results/{ANALYSIS_ID}" + "/aggregated_signals.txt"
+        "results/{analysis_id}/aggregated_signals.txt"
     conda:
         "../envs/utils.yaml"
     script:
@@ -47,7 +46,7 @@ rule prefinal_table:
         rules.aggregate_signals.output,
         dtr_blast_done = gather_dtr
     output:
-        f"results/{ANALYSIS_ID}" + "/prefinal_table.txt"
+        "results/{analysis_id}/prefinal_table.txt"
     params:
         lengths = "resources/crassus_dependencies/taxas_average_length.txt"
     conda:

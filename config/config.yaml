@@ -13,9 +13,9 @@ phylogenies:
 
 shared_prots_cutoffs:
   family: 20
-  genus: 65
+  genus: 70
 
 
 plot:
-  generate_plots: False
+  generate_plots: True
   aln_min_len: 200

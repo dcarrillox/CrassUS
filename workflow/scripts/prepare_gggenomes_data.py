@@ -45,7 +45,7 @@ res = res[['key', 'group']]
 
 # load the blast file
 names = ["qname", "tname", "perc_sim", "aln_len", "mismatch", "gap", "qstart", "qend", "tstart", "tend", "evalue", "std", "qlen", "slen"]
-blast_df = pd.read_csv("/home/danielc/projects/crAssUS/results/7_ANI/0_species/all_genomes_ref_crassus_blast.tsv", sep="\t", names=names)
+blast_df = pd.read_csv(snakemake.input.blast, sep="\t", names=names)
 # remove alignments shorter than the cutoff
 min_aln_len = int(snakemake.config["plot"]["aln_min_len"])
 blast_df = blast_df[blast_df["aln_len"] >= min_aln_len]

@@ -2,22 +2,18 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        expand([
-                f"results/{ANALYSIS_ID}" + "/1_rename/{sample}.fasta",
-                f"results/{ANALYSIS_ID}" + "/2_six_frames/1_screening/{sample}.domtxt",
-                f"results/{ANALYSIS_ID}" + "/2_six_frames/profiles_hits.txt",
-                ],
-                sample=SAMPLES),
-        f"results/{ANALYSIS_ID}" + "/4_ORF/coding_summary.txt",
-        f"results/{ANALYSIS_ID}" + "/6_clustering/table_clustering.tsv",
-        f"results/{ANALYSIS_ID}" + "/5_phylogenies/taxonomic_classification.txt",
-        f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species.txt",
-        f"results/{ANALYSIS_ID}" + "/7_ANI/ani_genus_species_taxonomy.txt",
-        f"results/{ANALYSIS_ID}" + "/6_clustering/shared_content_matrix.txt",
-        f"results/{ANALYSIS_ID}" + "/6_clustering/shared_content_taxonomy.txt",
-        #f"results/{ANALYSIS_ID}" + "/aggregated_signals.txt",
-        #f"results/{ANALYSIS_ID}" + "/prefinal_table.txt"
-        #f"results/{ANALYSIS_ID}" + "/4_ORF/2_functional_annot_tables/.finished",
+        generate_plots,
+        # expand([
+        #         "results/{analysis_id}/1_rename/{sample}.fasta",
+        #         "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt",
+        #         "results/{analysis_id}/2_six_frames/profiles_hits.txt",
+        #         "results/{analysis_id}/4_ORF/coding_summary.txt",
+        #         "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
+        #
+        #         #"results/{analysis_id}/5_phylogenies/taxonomic_classification.txt",
+        #         ],
+        #         sample=SAMPLES, analysis_id=ANALYSES_IDS)
+
 
 
 
@@ -29,8 +25,6 @@ rule all:
         #"results/aggregated_signals.txt",
         #"results/prefinal_table.txt",
         #"results/4_ORF/2_functional_annot_tables/.finished"
-
-
 
 
 

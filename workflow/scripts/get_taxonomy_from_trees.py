@@ -17,10 +17,13 @@ markers = sorted(markers, reverse=True)
 # init them as unknown, if they were classified (or not) the value will be replaced
 crassus_classification = {contig:dict() for contig in crassus_contigs}
 for contig in crassus_classification:
-    for marker in markers:
-        crassus_classification[contig][f"family_{marker}"] = "unknown"
-        crassus_classification[contig][f"subfamily_{marker}"] = "unknown"
-        #crassus_classification[contig][f"genus_{marker}"] = "unknown"
+    for rank in ["family", "subfamily", "genus"]:
+        for marker in markers:
+            crassus_classification[contig][f"{rank}_{marker}"] = "unknown"
+            crassus_classification[contig][f"{rank}_{marker}"] = "unknown"
+            crassus_classification[contig][f"{rank}_{marker}"] = "unknown"
+
+
 
 
 # read crass_reference taxonomic classification
@@ -38,6 +41,14 @@ families = list(set([crass_taxonomy[genome]["family"] for genome in crass_taxono
 subfamilies = list(set([crass_taxonomy[genome]["subfamily"] for genome in crass_taxonomy]))
 genera = list(set([crass_taxonomy[genome]["genus"] for genome in crass_taxonomy]))
 
+families.remove("outgroup")
+families.remove("NA")
+subfamilies.remove("outgroup")
+subfamilies.remove("NA")
+genera.remove("outgroup")
+genera.remove("NA")
+
+outgroups = {"TerL":"NC_021803|775|90", "MCP":"NC_021803|443|97", "portal":"NC_021803|812|91"}
 
 # go through the markers trees and parse them
 for marker_tree in snakemake.input.markers_trees:
@@ -69,21 +80,19 @@ for marker_tree in snakemake.input.markers_trees:
                               genome=genome)
 
     # find the LCA of the two outgroup species
-    outgs_leaves = t.search_nodes(family="outgroup")
-    og = t.search_nodes(family="outgroup")[0]
+    out_leaf = t.search_nodes(name=outgroups[marker])[0]
     # reroot the tree
-    t.set_outgroup(og)
+    t.set_outgroup(out_leaf)
 
 
     ## classify crassus_contigs
     for family in families:
-        if family != "outgroup":
-            family_leaves = t.search_nodes(family=family)
-            family_lca = t.get_common_ancestor(family_leaves)
-            # iterate the leaves of the LCA
-            for leaf in family_lca.iter_leaves():
-                if leaf.family == "new":
-                    crassus_classification[leaf.genome][f"family_{marker}"] = family
+        family_leaves = t.search_nodes(family=family)
+        family_lca = t.get_common_ancestor(family_leaves)
+        # iterate the leaves of the LCA
+        for leaf in family_lca.iter_leaves():
+            if leaf.family == "new":
+                crassus_classification[leaf.genome][f"family_{marker}"] = family
 
 
 
@@ -126,7 +135,7 @@ for marker_tree in snakemake.input.markers_trees:
             reason = markers_summary.loc[genome,marker]
             crassus_classification[genome][f"family_{marker}"] = reason
             crassus_classification[genome][f"subfamily_{marker}"] = reason
-            #crassus_classification[genome][f"genus_{marker}"] = reason
+            crassus_classification[genome][f"genus_{marker}"] = reason
 
 
 # convert the dictionary to table and write to csv with pandas

@@ -1,11 +1,13 @@
+#!/usr/bin/env python
+# env: utils.yaml
+
 from Bio import SeqIO, SearchIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 
-# env: utils.yaml
 
 # read marker genes from file
-lines = [line.strip().split("\t") for line in open("resources/yutin_2021/all_profiles/marker_profiles.txt").readlines()]
+lines = [line.strip().split("\t") for line in open("resources/crassus_dependencies/marker_profiles/profiles_length.txt").readlines()]
 profs_names = {line[0]:line[1] for line in lines}
 
 
@@ -16,10 +18,9 @@ records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
 for record in records:
     if record.id in profs_names:
         for hit in record.hits:
-            if hit.bitscore > 15:
-                for hsp in hit.hsps:
-                    if hsp.is_included:
-                        markers_hits[profs_names[record.id]].append(hit.id)
+            for hsp in hit.hsps:
+                if hsp.evalue < 0.001 and hit.bitscore >= 15:
+                    markers_hits[profs_names[record.id]].append(hit.id)
 
 
 print(markers_hits)

@@ -1,11 +1,11 @@
 rule get_marker_proteins:
     input:
         hmmtxt = rules.annotate_proteins_best_coding.output.outfile,
-        faa = f"results/{ANALYSIS_ID}" + "/4_ORF/1_best_coding/{prots}.faa",
-        gff = f"results/{ANALYSIS_ID}" + "/4_ORF/1_best_coding/{prots}.gff"
+        faa = "results/{analysis_id}/4_ORF/1_best_coding/{prots}.faa",
+        gff = "results/{analysis_id}/4_ORF/1_best_coding/{prots}.gff"
     output:
-        faa = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
-        summary = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary"
+        faa = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
+        summary = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary"
     conda:
         "../envs/utils.yaml"
     script:
@@ -16,8 +16,8 @@ rule check_markers:
         faa = rules.get_marker_proteins.output.faa,
         profile = "resources/crassus_dependencies/marker_profiles/custom_yutin_markers.hmm"
     output:
-        outfile = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
-        domtblout = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.domtxt"
+        outfile = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
+        domtblout = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.domtxt"
     # log:
     #     "logs/hmmscan/markers/{prots}.log"
     conda:
@@ -38,9 +38,9 @@ checkpoint summarize_markers:
     input:
         get_markers_files
     output:
-        summary = f"results/{ANALYSIS_ID}" + "/5_phylogenies/markers.summary",
-        coverages = f"results/{ANALYSIS_ID}" + "/5_phylogenies/markers.coverages",
-        faa_dir = directory(f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/1_final")
+        summary = "results/{analysis_id}/5_phylogenies/markers.summary",
+        coverages = "results/{analysis_id}/5_phylogenies/markers.coverages",
+        faa_dir = directory("results/{analysis_id}/5_phylogenies/0_marker_genes/1_final")
     params:
         profiles_length = "resources/crassus_dependencies/marker_profiles/profiles_length.txt"
     conda:
@@ -48,64 +48,41 @@ checkpoint summarize_markers:
     script:
         "../scripts/summarize_markers.py"
 
-if config["mafft_msa"]["einsi"]:
-    rule multiple_sequence_alignment_einsi:
-        input:
-            found = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
-            ref   = "resources/crassus_dependencies/MSAs/reference_{marker}.mafft-einsi"
-        output:
-            f"results/{ANALYSIS_ID}" + "/5_phylogenies/1_MSAs/{marker}.msa"
-        threads: 10
-        conda:
-            "../envs/phylogenies.yaml"
-        log:
-            f"logs/{ANALYSIS_ID}" + "/msa_alignment/{marker}.log"
-        shell:
-            '''
-            nseqs=$(grep -c ">" {input.found})
-            if [[ $nseqs -gt 2000 ]]
-            then
-                echo "More than 2K sequences, running MAFTT AUTO instead..."
-                time mafft --auto --quiet --add {input.found} --thread {threads} {input.ref} > {output}
-            else
-                time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}
-            fi
-            '''
-            #"time mafft-einsi --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
-else:
-    rule multiple_sequence_alignment_fftnsi:
-        input:
-            found = f"results/{ANALYSIS_ID}" + "/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
-            ref   = "resources/crassus_dependencies/MSAs/reference_{marker}.mafft-einsi"
-        output:
-            f"results/{ANALYSIS_ID}" + "/5_phylogenies/1_MSAs/{marker}.msa"
-        threads: 10
-        conda:
-            "../envs/phylogenies.yaml"
-        log:
-            f"logs/{ANALYSIS_ID}" + "/msa_alignment/{marker}.log"
-        shell:
-            '''
-            nseqs=$(grep -c ">" {input.found})
-            if [[ $nseqs -gt 2000 ]]
-            then
-                echo "More than 2K sequences, running MAFTT AUTO instead..."
-                time mafft --auto --quiet --add {input.found} --thread {threads} {input.ref} > {output}
-            else
-                time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}
-            fi
-            '''
-            #"time mafft-fftnsi --maxiterate 1000 --quiet --add {input.found} --thread {threads} {input.ref} > {output}"
-
-rule msa_trimming:
+rule multiple_sequence_alignment:
     input:
-        f"results/{ANALYSIS_ID}" + "/5_phylogenies/1_MSAs/{marker}.msa"
+        found = "results/{analysis_id}/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
+        ref   = "resources/crassus_dependencies/MSAs/reference_{marker}.mafft-einsi"
     output:
-        f"results/{ANALYSIS_ID}" + "/5_phylogenies/1_MSAs/{marker}_trimmed.msa"
+        "results/{analysis_id}/5_phylogenies/1_MSAs/{marker}.msa"
+    params:
+        mode = "mafft-einsi" if config["mafft_msa"]["einsi"] else "mafft-fftnsi --maxiterate 1000"
+    threads: 10
     conda:
         "../envs/phylogenies.yaml"
     log:
-        f"logs/{ANALYSIS_ID}" + "/msa_trimming/{marker}.log"
+        "logs/{analysis_id}/msa_alignment/{marker}.log"
+    shell:
+        '''
+        nseqs=$(grep -c ">" {input.found})
+        if [[ $nseqs -gt 2000 ]]
+        then
+            echo "More than 2K sequences, running MAFTT AUTO instead..."
+            time mafft --auto --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+        else
+            time {params.mode} --quiet --add {input.found} --thread {threads} {input.ref} > {output}
+        fi
+        '''
+
+rule msa_trimming:
+    input:
+        rules.multiple_sequence_alignment.output
+        #"results/{analysis_id}/5_phylogenies/1_MSAs/{marker}.msa"
+    output:
+        "results/{analysis_id}/5_phylogenies/1_MSAs/{marker}_trimmed.msa"
+    conda:
+        "../envs/phylogenies.yaml"
+    log:
+        "logs/{analysis_id}/msa_trimming/{marker}.log"
     shell:
         "trimal -in {input} -out {output} -gt 0.9 &> {log}"
 
@@ -113,24 +90,10 @@ rule make_trees:
     input:
         rules.msa_trimming.output
     output:
-        f"results/{ANALYSIS_ID}" + "/5_phylogenies/2_trees/{marker}_trimmed.nwk"
+        "results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.nwk"
     conda:
         "../envs/phylogenies.yaml"
     log:
-        f"logs/{ANALYSIS_ID}" + "/trees/{marker}.log"
+        "logs/{analysis_id}/trees/{marker}.log"
     shell:
         "fasttree -log {log} {input} > {output}"
-
-
-
-# rule measure_leaves_distances:
-#     input:
-#         rules.make_trees.output
-#     output:
-#         "results/5_phylogenies/2_trees/{marker}_trimmed.dist"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/measure_leaves_distances.py"

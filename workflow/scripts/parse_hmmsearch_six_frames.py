@@ -1,30 +1,43 @@
-from Bio import SearchIO
-
+#!/usr/bin/env python
 # env: utils.yaml
 
-# Looking at hit's evalue might be too greedy, better check the ivalue of the hsp(s)
+from Bio import SearchIO
 
+"""
+Parses the results from hmmsearch to know which contigs got hits from the
+Crassvirales reference set of marker genes (TerL, MCP, portal)
+"""
+
+# Link reference profile ids (such as VP02660 or VP02749) to protein names
+lines = [line.strip().split("\t")
+            for line in open(snakemake.params.profiles_names).readlines()]
+
+prof_names = {line[0]:line[1] for line in lines}
+
+
+# parse the results from hmmsearch. For each target (user contigs), store which
+# marker profiles (queries: TerL, MCP, portal) where found.
 to_write = list()
-
 for file in snakemake.input:
     records = SearchIO.parse(file, "hmmer3-text")
 
     for record in records:
         for hit in record.hits:
-            check = False
-            # if hit.is_included:
-            #     to_write.append([hit.id, record.id, str(hit.evalue)])
             for hsp in hit.hsps:
-                if hsp.is_included:
-                    check = True
+                if hsp.evalue < 0.001 and hit.bitscore >= 15:
+                    to_write.append([hit.id,
+                                     record.id,
+                                     prof_names[record.id],
+                                     str(hit.evalue),
+                                     str(hsp.evalue)]
+                                    )
+                    break
 
-            if check:
-                to_write.append([hit.id, record.id, str(hit.evalue)])
 
 
 # write hits
 with open(snakemake.output.hits_table, "w") as fout:
-    fout.write("transeq_contig\tcrass_profile\tevalue\n")
+    fout.write("transeq_contig\tprofile_id\tprofile_name\te-value\ti-value\n")
     if to_write:
         for line in to_write:
             fout.write("\t".join(line)+ "\n")
