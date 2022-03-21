@@ -1,4 +1,5 @@
-sample_sheet: config/samples.tsv
+sample_sheet: ancient_samplesheet.tsv
+
 
 
 mafft_msa:
