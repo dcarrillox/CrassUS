@@ -1,34 +1,3 @@
-rule run_DTR_blast:
-    input:
-        "results/{analysis_id}/3_crass_contigs/{contig}.fasta"
-    output:
-        temp(multiext("results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto")),
-        blast = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_blast",
-        done = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_blast_done"
-    params:
-        tmp_fasta = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_fasta",
-        tmp_db = "results/{analysis_id}/3_crass_contigs/dtr_blast/{contig}.dtr_db"
-    conda:
-        "../envs/utils.yaml"
-    log:
-        makedb = "logs/{analysis_id}/dtr/{contig}_makedb.log",
-        blast  = "logs/{analysis_id}/dtr/{contig}_blast.log"
-    script:
-        "../scripts/run_DTR_blast.py"
-
-rule parse_trees:
-    input:
-        markers_trees = gather_trees,
-        markers_summary = "results/{analysis_id}/5_phylogenies/markers.summary"
-    output:
-        "results/{analysis_id}/5_phylogenies/taxonomic_classification.txt",
-    params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
-    conda:
-        "../envs/phylogenies.yaml"
-    script:
-        "../scripts/get_taxonomy_from_trees.py"
-
 rule aggregate_signals:
     input:
         phylogenies = rules.parse_trees.output,

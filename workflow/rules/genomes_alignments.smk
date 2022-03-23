@@ -2,8 +2,7 @@ rule blast_all:
     input:
         gather_genomes_blastall,
     output:
-        #temp(multiext("results/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto"))
-        multiext("results/{analysis_id}/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
+        temp(multiext("results/{analysis_id}/7_ANI/0_species/all_genomes_ref_crassus.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto")),
         tsv = "results/{analysis_id}/7_ANI/0_species/all_genomes_ref_crassus_blast.tsv"
     params:
         fasta_all = "results/{analysis_id}/7_ANI/0_species/all_genomes_ref_crassus.fasta",
@@ -17,7 +16,7 @@ rule blast_all:
         makeblastdb -in {params.fasta_all} -dbtype nucl -out {params.db} ;
         blastn -query {params.fasta_all} -db {params.db} -dust no \
         -outfmt '6 std qlen slen' -max_target_seqs 10000 \
-        -out {output.tsv} -num_threads {threads}
+        -out {output.tsv} -num_threads {threads} -perc_identity 60
         """
 
 rule anicalc_species:
@@ -50,8 +49,7 @@ rule blast_representatives:
         aniclust = rules.aniclust_species.output,
         fasta_all = "results/{analysis_id}/7_ANI/0_species/all_genomes_ref_crassus.fasta"
     output:
-        #temp(multiext("results/7_ANI/1_genus/repr_genomes.", "fasta", "db.ndb", "db.nhr", "db.nin", "db.not", "db.nsq", "db.ntf", "db.nto"))
-        multiext("results/{analysis_id}/7_ANI/1_genus/repr_genomes.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto"),
+        temp(multiext("results/{analysis_id}/7_ANI/1_genus/repr_genomes.", "fasta", "ndb", "nhr", "nin", "not", "nsq", "ntf", "nto")),
         tsv = "results/{analysis_id}/7_ANI/1_genus/repr_genomes_blast.tsv",
     params:
         repr_ids = "results/{analysis_id}/7_ANI/1_genus/repr_genomes.ids",

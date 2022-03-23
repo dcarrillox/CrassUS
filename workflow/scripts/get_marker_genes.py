@@ -4,16 +4,21 @@
 from Bio import SeqIO, SearchIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
+import sys
 
 
-# read marker genes from file
-lines = [line.strip().split("\t") for line in open("resources/crassus_dependencies/marker_profiles/profiles_length.txt").readlines()]
+# -----------------------------------------------------------------
+# Find out which contig genes (hit.id) were annotated as any of the markers
+
+# store marker_name - marker_profile_id pairs
+lines = [line.strip().split("\t") for line in open(snakemake.params.markers_ids).readlines()]
 profs_names = {line[0]:line[1] for line in lines}
 
-
-# parse the hmmsearch file, store hits along the profile name
-markers = [marker for marker in snakemake.config["phylogenies"] if snakemake.config["phylogenies"][marker]]
+# get from the config file which markers were used, init a dict with them
+markers = sorted([marker for marker in snakemake.config["phylogenies"]["markers"] if snakemake.config["phylogenies"]["markers"][marker]], reverse=True)
 markers_hits = {marker:list() for marker in markers}
+
+# parse the hmmsearch file, store hits along the marker name
 records = SearchIO.parse(snakemake.input.hmmtxt, "hmmer3-text")
 for record in records:
     if record.id in profs_names:
@@ -23,24 +28,26 @@ for record in records:
                     markers_hits[profs_names[record.id]].append(hit.id)
 
 
-print(markers_hits)
 
-# read gff
+# ---------------------------------------------------------------------
+# For the best coding, read GFF (strand info) and FAA (sequence itself)
 gff_lines = [line.split("\t") for line in open(snakemake.input.gff).readlines() if not line.startswith("#")]
-# read best coding protein file
 records = {record.id:record for record in SeqIO.parse(snakemake.input.faa, "fasta")}
 
 
-# iterate the names & hits
+
+# --------------------------------------------------------
+# iterate the markers and their hits, merging if necessary
 to_write_faa = list()
 markers_summary = {marker:list() for marker in markers}
 
 for marker, hits in markers_hits.items():
     # check if there were hits for that name
-    # if there were hits
-    if hits:
+    if not hits:
+        markers_summary[marker] = "not_found"
+    else:
+        # remove redundancy: hits with many profiles of the marker
         unique_hits = list(set(hits))
-        #print(marker, unique_hits)
         # init a list to store the strands to know how to merge, if necessary
         strands = list()
         # get the n_gene in the genome
@@ -51,21 +58,31 @@ for marker, hits in markers_hits.items():
             strands.append(gff_lines[n_gene-1][6])
 
         # check the presence of fragments. If so, try to merge them
-        if len(unique_hits) > 1:
+        if len(unique_hits) == 1: # only one fragment
+            to_write_faa.append(records[unique_hits[0]])
+            markers_summary[marker] = unique_hits[0]
+        else: # multiple fragments
             # get the strand of the fragments
             strand = list(set(strands))
-            if len(strand) == 1:
+            if len(strand) != 1: # fragments on different strands
+                fragments = sorted(unique_hits, key=lambda fragment: int(fragment.split("|")[-1]))
+                sorted_prots = sorted(fragments, key=lambda fragment: int(fragment.split("|")[-2]), reverse=True)
+                longest_prot = sorted_prots[0]
+                markers_summary[marker] = longest_prot
+                to_write_faa.append(records[longest_prot])
+                print(f"wrong strands detected: {fragments}\n{longest_prot} chosen.",file=sys.stderr)
+
+            else: # fragments on the same strand
                 # + strand, sort ascendent
                 if strand[0] == "+":
                     fragments = sorted(unique_hits, key=lambda fragment: int(fragment.split("|")[-1]))
                 else:
                     fragments = sorted(unique_hits, key=lambda fragment: int(fragment.split("|")[-1]), reverse=True)
 
-                # go through the fragments. If the distance is equal or lower than 5, merge
-                # the fragments. Otherwise, select the longest protein
+                # go through the fragments. If the distance is <= 5 genes, merge
+                # the fragments. Otherwise, select the longest one
                 check = True
                 for i in range(len(fragments)-1):
-                    #print(fragments[i],fragments[i+1])
                     n_gene_1 = int(fragments[i].split("|")[-1])
                     n_gene_2 = int(fragments[i+1].split("|")[-1])
                     if abs(n_gene_1 - n_gene_2) > 5:
@@ -74,51 +91,35 @@ for marker, hits in markers_hits.items():
                         longest_prot = sorted_prots[0]
                         markers_summary[marker] = longest_prot
                         to_write_faa.append(records[longest_prot])
-                        print(f"multiple copies detected: {fragments}\n{longest_prot} chosen.")
+                        print(f"multiple copies detected: {fragments}\n{longest_prot} chosen.", file=sys.stderr)
                         check = False
                         break
 
-
                 if check:
                     contig = fragments[0].split("|")[0]
-                    joint_n = "_".join([fragment.split("|")[-1] for fragment in fragments])
+                    combi_n = "_".join([fragment.split("|")[-1] for fragment in fragments])
                     seq = str()
                     for fragment in fragments:
                         seq += str(records[fragment].seq).replace("*", "")
 
-                    joint_id = f"{contig}|{len(seq)}|{joint_n}"
-                    new_record = SeqRecord(Seq(seq), id=joint_id, description="")
+                    combi_id = f"{contig}|{len(seq)}|{combi_n}"
+                    new_record = SeqRecord(Seq(seq), id=combi_id, description="")
 
                     to_write_faa.append(new_record)
-                    markers_summary[marker] = joint_id
+                    markers_summary[marker] = combi_id
 
-            # if different strands, grab the longest protein
-            else:
-                fragments = sorted(unique_hits, key=lambda fragment: int(fragment.split("|")[-1]))
-                sorted_prots = sorted(fragments, key=lambda fragment: int(fragment.split("|")[-2]), reverse=True)
-                longest_prot = sorted_prots[0]
-                markers_summary[marker] = longest_prot
-                to_write_faa.append(records[longest_prot])
-                print(f"wrong strands detected: {fragments}\n{longest_prot} chosen.")
 
-        # otherwise, just grab the complete terminase sequence
-        else:
-            to_write_faa.append(records[unique_hits[0]])
-            markers_summary[marker] = unique_hits[0]
 
-    else:
-        print(marker, " what")
-        markers_summary[marker] = "not_found"
 
-##
+# ----------------------
+# Write final FAA file and summary
+
+with open(snakemake.output.faa, "w") as fout:
+    if to_write_faa:
+        SeqIO.write(to_write_faa, fout, "fasta")
+
 with open(snakemake.output.summary, "w") as fout:
     fout.write(f"\t" + "\t".join(markers) + "\n")
     to_write = [snakemake.wildcards.prots.split("_tbl-")[0]]
     to_write += [markers_summary[marker] for marker in markers]
-    print(to_write)
     fout.write("\t".join(to_write) + "\n")
-
-with open(snakemake.output.faa, "w") as fout:
-    # if there is a TerL sequence(s) to grab from the prodigal file...
-    if to_write_faa:
-        SeqIO.write(to_write_faa, fout, "fasta")

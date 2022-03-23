@@ -74,6 +74,7 @@ def get_genome_tables_finished(wildcards): # used
 
 def get_markers_files(wildcards): # used
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
+
     markers_summary_files = expand("results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary",
                             analysis_id=ANALYSES_IDS[0],
                             prots=glob_wildcards(f"{checkpoint_output}/{{prots}}.faa").prots
@@ -99,10 +100,7 @@ def gather_genomes_blastall(wildcards): # used
 
 def gather_trees(wildcards): # used
     # check the config file to know which markers are requested for the trees
-    config_markers = list()
-    for marker in config["phylogenies"]:
-        if config["phylogenies"][marker]:
-            config_markers.append(marker)
+    config_markers = [marker for marker in config["phylogenies"]["markers"] if config["phylogenies"]["markers"][marker]]
 
     # get the markers given by the checkpoint
     checkpoint_output = checkpoints.summarize_markers.get(**wildcards).output.faa_dir
@@ -120,7 +118,6 @@ def gather_trees(wildcards): # used
                     marker=final_markers
                     )
 
-    print(final_markers)
     return tree_files
 
 def gather_dtr(wildcards): # used

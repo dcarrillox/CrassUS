@@ -4,15 +4,21 @@ import os
 
 # env: phylogenies.yaml
 
-
+# --------------------------------------------
 # list the contigs that were found by crAssUS.
 markers_summary = pd.read_csv(snakemake.input.markers_summary, sep="\t", header=0, index_col=0)
 crassus_contigs = markers_summary.index.to_list()
 
+
+
+# ----------------------------------------
 # get which markers underwent the analysis
 markers = [os.path.basename(tree_file).split("_trimmed.nwk")[0] for tree_file in snakemake.input.markers_trees]
 markers = sorted(markers, reverse=True)
 
+
+
+# ------------------------------------------------------------------------------
 # init the taxa classification dict, containing all the markers that underwent the analysis
 # init them as unknown, if they were classified (or not) the value will be replaced
 crassus_classification = {contig:dict() for contig in crassus_contigs}
@@ -25,22 +31,19 @@ for contig in crassus_classification:
 
 
 
-
+# ---------------------------------------------
 # read crass_reference taxonomic classification
 crass_taxonomy = dict()
 lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()[1:]]
 for line in lines:
-    crass_taxonomy[line[0]] = {
-                               "family":line[1],
-                               "subfamily":line[2],
-                               "genus":line[3]
-                              }
+    crass_taxonomy[line[0]] = {"family":line[1],"subfamily":line[2],"genus":line[3]}
 
 # get all the possible names for the three ranks
 families = list(set([crass_taxonomy[genome]["family"] for genome in crass_taxonomy]))
 subfamilies = list(set([crass_taxonomy[genome]["subfamily"] for genome in crass_taxonomy]))
 genera = list(set([crass_taxonomy[genome]["genus"] for genome in crass_taxonomy]))
 
+# remove outgroup and NA
 families.remove("outgroup")
 families.remove("NA")
 subfamilies.remove("outgroup")
@@ -48,11 +51,13 @@ subfamilies.remove("NA")
 genera.remove("outgroup")
 genera.remove("NA")
 
+
+
+# -------------------------------------------
+# go throug the markers trees and parse them
 outgroups = {"TerL":"NC_021803|775|90", "MCP":"NC_021803|443|97", "portal":"NC_021803|812|91"}
 
-# go through the markers trees and parse them
 for marker_tree in snakemake.input.markers_trees:
-    print(marker_tree)
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
 
@@ -67,7 +72,6 @@ for marker_tree in snakemake.input.markers_trees:
         # check if the leaf comes from the reference set
         genome = leaf.name.split("|")[0]
         if genome in crass_taxonomy:
-            #print(genome)
             leaf.add_features(family=crass_taxonomy[genome]["family"],
                               subfamily=crass_taxonomy[genome]["subfamily"],
                               genus=crass_taxonomy[genome]["genus"],
@@ -79,13 +83,15 @@ for marker_tree in snakemake.input.markers_trees:
                               genus="new",
                               genome=genome)
 
-    # find the LCA of the two outgroup species
+    # find the LCA of the outgroup species and reroot with it
     out_leaf = t.search_nodes(name=outgroups[marker])[0]
-    # reroot the tree
     t.set_outgroup(out_leaf)
 
 
-    ## classify crassus_contigs
+    # -------------------------
+    # classify crassus_contigs
+
+    # Family rank
     for family in families:
         family_leaves = t.search_nodes(family=family)
         family_lca = t.get_common_ancestor(family_leaves)
@@ -95,15 +101,14 @@ for marker_tree in snakemake.input.markers_trees:
                 crassus_classification[leaf.genome][f"family_{marker}"] = family
 
 
-
+    # Subfamily rank
     for subfamily in subfamilies:
         lcas = t.get_monophyletic(values=[subfamily, "new"], target_attr="subfamily")
         # if monophyletic clades containing subfamily and new genomes were found, iterate them
         if lcas:
-            # iterate the lcas
             for lca in lcas:
                 subfamily_leaves = lca.search_nodes(subfamily=subfamily)
-                # to get the common ancestor, it does not work if there is only one leaf
+                # to get the common ancestor, it doesn't work if there is only one leaf
                 if len(subfamily_leaves) > 1:
                     final_lca = lca.get_common_ancestor(subfamily_leaves)
                     # iterate the final_lca while assigning taxonomy
@@ -111,15 +116,15 @@ for marker_tree in snakemake.input.markers_trees:
                         if leaf.subfamily == "new":
                             crassus_classification[leaf.genome][f"subfamily_{marker}"] = subfamily
 
-    ## don't assess genus with the markers by now
+
+    # Genus rank
     for genus in genera:
         lcas = t.get_monophyletic(values=[genus, "new"], target_attr="genus")
         # if monophyletic clades containing genus and new genomes were found, iterate them
         if lcas:
-            # iterate the lcas
             for lca in lcas:
                 genus_leaves = lca.search_nodes(genus=genus)
-                # to get the common ancestor, it does not work if there is only one leaf
+                # to get the common ancestor, it doesn't work if there is only one leaf
                 if len(genus_leaves) > 1:
                     final_lca = lca.get_common_ancestor(genus_leaves)
                     # iterate the final_lca while assigning taxonomy
@@ -127,19 +132,20 @@ for marker_tree in snakemake.input.markers_trees:
                         if leaf.genus == "new":
                             crassus_classification[leaf.genome][f"genus_{marker}"] = genus
 
-    # check which genomes are not present in the tree and call them as "Not found"
-    # for that marker
+    # check which genomes are not present in the tree and write the reason
+    # according to "markers_summary.txt"
     for genome in crassus_contigs:
         if genome not in genomes_marker:
             # get what happened in this genome from the summary_markers file
-            reason = markers_summary.loc[genome,marker]
+            reason = markers_summary.loc[genome, marker]
             crassus_classification[genome][f"family_{marker}"] = reason
             crassus_classification[genome][f"subfamily_{marker}"] = reason
             crassus_classification[genome][f"genus_{marker}"] = reason
 
 
-# convert the dictionary to table and write to csv with pandas
-#print(crassus_classification)
+
+# ---------------------------------------------------------------
+# convert the classification dictionary to table and write to csv
 df = pd.DataFrame(crassus_classification)
 tdf = df.transpose()
 tdf.to_csv(snakemake.output[0], sep="\t", index=True)
