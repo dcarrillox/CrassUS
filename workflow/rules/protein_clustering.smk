@@ -7,7 +7,7 @@ rule proteins_clustering:
     conda:
         "../envs/clustering.yaml"
     params:
-        ref_faa   = "resources/crassus_dependencies/reference_genomes/all_reference_proteins.faa", # TO SET
+        ref_faa   = "resources/CrassUS_db/reference_genomes/all_reference_proteins.faa", # TO SET
         prots_faa = "results/{analysis_id}/6_protein_clustering/db/all_proteins.faa",
         prots_db_dir = "results/{analysis_id}/6_protein_clustering/db",
         prots_db   = "results/{analysis_id}/6_protein_clustering/db/all_proteins",
@@ -41,7 +41,7 @@ rule calculate_shared_prots:
         nprots = "results/{analysis_id}/6_protein_clustering/nprots_cluster.txt",
         table_clustering_ids = "results/{analysis_id}/6_protein_clustering/table_clustering_ids.tsv"
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt"
     threads: 999
     conda:
         "../envs/utils.yaml"
@@ -54,7 +54,7 @@ rule protein_content_taxa:
     output:
         "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt"
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt"
     conda:
         "../envs/phylogenies.yaml"
     script:

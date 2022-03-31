@@ -7,7 +7,7 @@ rule get_marker_proteins:
         faa = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.faa",
         summary = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.summary"
     params:
-        markers_ids = "resources/crassus_dependencies/marker_profiles/profiles_length.txt"
+        markers_ids = "resources/CrassUS_db/marker_profiles/profiles_length.txt"
     log:
         "logs/{analysis_id}/hmmscan/markers/{prots}_get_markers.log"
     conda:
@@ -18,7 +18,7 @@ rule get_marker_proteins:
 rule check_markers:
     input:
         faa = rules.get_marker_proteins.output.faa,
-        profile = "resources/crassus_dependencies/marker_profiles/custom_yutin_markers.hmm"
+        profile = "resources/CrassUS_db/marker_profiles/custom_yutin_markers.hmm"
     output:
         outfile = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.hmmtxt",
         domtblout = "results/{analysis_id}/5_phylogenies/0_marker_genes/0_contigs/{prots}_markers.domtxt"
@@ -46,7 +46,7 @@ checkpoint summarize_markers:
         coverages = "results/{analysis_id}/5_phylogenies/markers_coverages.txt",
         faa_dir = directory("results/{analysis_id}/5_phylogenies/0_marker_genes/1_final")
     params:
-        profiles_length = "resources/crassus_dependencies/marker_profiles/profiles_length.txt"
+        profiles_length = "resources/CrassUS_db/marker_profiles/profiles_length.txt"
     conda:
         "../envs/utils.yaml"
     script:
@@ -55,7 +55,7 @@ checkpoint summarize_markers:
 rule multiple_sequence_alignment:
     input:
         found = "results/{analysis_id}/5_phylogenies/0_marker_genes/1_final/{marker}.faa",
-        ref   = "resources/crassus_dependencies/MSAs/reference_{marker}.mafft-einsi"
+        ref   = "resources/CrassUS_db/MSAs/reference_{marker}.mafft-einsi"
     output:
         "results/{analysis_id}/5_phylogenies/1_MSAs/{marker}.msa"
     params:
@@ -108,7 +108,7 @@ rule parse_trees:
     output:
         "results/{analysis_id}/5_phylogenies/markers_classification.txt",
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt"
     conda:
         "../envs/phylogenies.yaml"
     script:

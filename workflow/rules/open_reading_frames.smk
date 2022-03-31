@@ -13,7 +13,7 @@ rule predict_ORF:
     threads: 1
     params:
         length = lambda wildcards, input: input[0].replace(".fasta", "").split("_")[-1],
-        prodigal = "resources/crassus_dependencies/prodigal"
+        prodigal = "resources/CrassUS_db/prodigal"
     log:
         log = "logs/{analysis_id}/orf_prediction/{contig}_tbl-11.log",
         tga_log = "logs/{analysis_id}/orf_prediction/{contig}_tbl-TGA.log",
@@ -60,7 +60,7 @@ checkpoint pick_best_coding:
 rule annotate_proteins_best_coding:
     input:
         fasta = "results/{analysis_id}/4_ORF/1_best_coding/{prots}.faa",
-        profile = "resources/crassus_dependencies/functional_annot/yutin_and_markers.hmm.h3f"
+        profile = "resources/CrassUS_db/functional_annot/yutin_and_markers.hmm.h3f"
     output:
         outfile = "results/{analysis_id}/4_ORF/2_functional_annot/{prots}.hmmtxt",
         domtblout = "results/{analysis_id}/4_ORF/2_functional_annot/{prots}.domtxt"
@@ -84,7 +84,7 @@ rule create_genome_table:
     output:
         "results/{analysis_id}/4_ORF/2_functional_annot_tables/{prots}.table"
     params:
-        yutin_names = "resources/crassus_dependencies/functional_annot/nicknames.txt"
+        yutin_names = "resources/CrassUS_db/functional_annot/nicknames.txt"
     conda:
         "../envs/utils.yaml"
     script:

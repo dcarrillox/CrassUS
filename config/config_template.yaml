@@ -1,0 +1,24 @@
+sample_sheet:
+
+
+mafft_msa:
+  einsi: False
+
+
+phylogenies:
+  marker_cov: 0.5
+  protein_cov: 0.5
+  markers:
+    TerL: True
+    MCP: True
+    portal: True
+
+
+shared_prots_cutoffs:
+  family: 20
+  genus: 70
+
+
+plot:
+  generate_plots: True
+  aln_min_len: 200

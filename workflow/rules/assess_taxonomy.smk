@@ -17,7 +17,7 @@ rule prefinal_table:
     output:
         "results/{analysis_id}/crassus_results.tsv"
     params:
-        lengths = "resources/crassus_dependencies/taxas_average_length.txt",
+        lengths = "resources/CrassUS_db/taxas_average_length.txt",
         ids_dir = "results/{analysis_id}/1_rename"
     conda:
         "../envs/utils.yaml"

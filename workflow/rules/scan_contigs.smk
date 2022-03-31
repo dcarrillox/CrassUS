@@ -21,7 +21,7 @@ rule translate_six_frames:
 rule hmmsearch_six_frames:
     input:
         fasta = rules.translate_six_frames.output,
-        profile = "resources/crassus_dependencies/marker_profiles/custom_yutin_markers.hmm.h3f"
+        profile = "resources/CrassUS_db/marker_profiles/custom_yutin_markers.hmm.h3f"
     output:
         outfile = "results/{analysis_id}/2_six_frames/1_screening/{sample}.hmmtxt",
         domtblout = "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt"
@@ -44,7 +44,7 @@ rule parse_hmmsearch_six_frames:
         hits_table = "results/{analysis_id}/2_six_frames/profiles_hits.txt",
         contigs    = "results/{analysis_id}/2_six_frames/matching_contigs.txt"
     params:
-        profiles_names = "resources/crassus_dependencies/functional_annot/nicknames.txt"
+        profiles_names = "resources/CrassUS_db/functional_annot/nicknames.txt"
     conda:
         "../envs/utils.yaml"
     script:

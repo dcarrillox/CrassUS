@@ -112,7 +112,7 @@ rule ani_assign_taxonomy:
     output:
         "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt"
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt"
     conda:
         "../envs/compare_genomes.yaml"
     script:
@@ -120,7 +120,7 @@ rule ani_assign_taxonomy:
 
 rule install_gggenomes:
     output:
-        done = "resources/crassus_dependencies/.gggenomes_install_done"
+        done = "resources/CrassUS_db/.gggenomes_install_done"
     conda:
         "../envs/plot_genomes.yaml"
     log:
@@ -136,9 +136,9 @@ checkpoint prepare_gggenomes_data:
     output:
         directory("results/{analysis_id}/7_ANI/2_plot")
     params:
-        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt",
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt",
         genome_tables_dir = "results/{analysis_id}/4_ORF/2_functional_annot_tables",
-        ref_genome_tables_dir = "resources/crassus_dependencies/reference_genomes/tables"
+        ref_genome_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
     conda:
         "../envs/utils.yaml"
     script:
@@ -154,7 +154,7 @@ rule plot_gggenomes:
         "results/{analysis_id}/7_ANI/2_plot/{gggdata}.png"
     params:
         contigs_tables_dir = "results/{analysis_id}/4_ORF/2_functional_annot_tables/",
-        reference_tables_dir = "resources/crassus_dependencies/reference_genomes/tables"
+        reference_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
     conda:
         "../envs/plot_genomes.yaml"
     script:

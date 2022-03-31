@@ -37,7 +37,7 @@ rule unzip_dependencies:
     input:
         "resources/crassus_dependencies.tar.gz"
     output:
-        "resources/crassus_dependencies/.unzip_done"
+        "resources/CrassUS_db/.unzip_done"
     shell:
         "tar zxf {input} && rm -f {input} ; touch {output}"
 
@@ -96,7 +96,7 @@ def gather_genomes_blastall(wildcards): # used
                     analysis_id=ANALYSES_IDS[0],
                     contig=glob_wildcards(f"{checkpoint_output}/{{contig}}.fasta").contig,
                     )
-    ref_genomes = glob.glob("resources/crassus_dependencies/reference_genomes/sequences/*.fasta")
+    ref_genomes = glob.glob("resources/CrassUS_db/reference_genomes/sequences/*.fasta")
     return crassus_fasta + ref_genomes
 
 def gather_trees(wildcards): # used
