@@ -37,7 +37,7 @@ rule unzip_dependencies:
     input:
         "resources/crassus_dependencies.tar.gz"
     output:
-        dir = "resources/CrassUS_db"
+        dir = "resources/CrassUS_db",
         mock = "resources/CrassUS_db/.unzip_done"
     shell:
         "tar zxf {input} --directory {output.dir} && rm -f {input} ; touch {output.mock}"
