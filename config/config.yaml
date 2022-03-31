@@ -1,4 +1,5 @@
-sample_sheet: database_update/samples.tsv
+sample_sheet: ancient_samplesheet.tsv
+
 
 
 mafft_msa:
@@ -6,16 +7,21 @@ mafft_msa:
 
 
 phylogenies:
-  TerL: True
-  MCP: True
-  portal: True
+  marker_cov: 0.5
+  protein_cov: 0.5
+  markers:
+    TerL: True
+    MCP: True
+    portal: True
+
+
 
 
 shared_prots_cutoffs:
   family: 20
-  genus: 65
+  genus: 70
 
 
 plot:
-  generate_plots: False
+  generate_plots: True
   aln_min_len: 200

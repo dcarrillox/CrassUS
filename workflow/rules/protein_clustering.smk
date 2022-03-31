@@ -2,30 +2,32 @@ rule proteins_clustering:
     input:
         get_prots_files
     output:
-        tsv = "results/6_clustering/table_clustering.tsv",
-        tmp_dir = temp(directory("results/6_clustering/tmp"))
-    #container: "library://dcarrillo/default/crassus:0.1"
+        tsv = "results/{analysis_id}/6_protein_clustering/table_clustering.tsv",
+        tmp_dir = temp(directory("results/{analysis_id}/6_protein_clustering/tmp"))
     conda:
-        "../../envs/clustering.yaml"
+        "../envs/clustering.yaml"
     params:
-        prots_faa = "results/6_clustering/db/all_proteins.faa",
-        prots_db  = "results/6_clustering/db/all_proteins",
-        out_prefx = "results/6_clustering/clustering"
+        ref_faa   = "resources/crassus_dependencies/reference_genomes/all_reference_proteins.faa", # TO SET
+        prots_faa = "results/{analysis_id}/6_protein_clustering/db/all_proteins.faa",
+        prots_db_dir = "results/{analysis_id}/6_protein_clustering/db",
+        prots_db   = "results/{analysis_id}/6_protein_clustering/db/all_proteins",
+        out_prefix = "results/{analysis_id}/6_protein_clustering/clustering"
     threads: 6
     log:
-        db = "logs/clustering/db.log",
-        clust = "logs/clustering/clustering.log",
-        tsv = "logs/clustering/to_table.log"
+        db    = "logs/{analysis_id}/protein_clustering/db.log",
+        clust = "logs/{analysis_id}/protein_clustering/clustering.log",
+        tsv   = "logs/{analysis_id}/protein_clustering/to_table.log"
     shell:
         """
-        mkdir -p results/6_clustering/db ;
-        cat {input} resources/all_crass_proteins.faa > {params.prots_faa} ;
+        mkdir -p {params.prots_db_dir} ;
+        cat {input} {params.ref_faa} > {params.prots_faa} ;
         mmseqs createdb {params.prots_faa} {params.prots_db} >> {log.db};
-        mmseqs cluster {params.prots_db} {params.out_prefx} {output.tmp_dir} \
-            -c 0 --threads {threads} -s 6 --cluster-steps 4 --cluster-reassign >> {log.clust} ;
-        mmseqs createtsv {params.prots_db} {params.prots_db} {params.out_prefx} \
+        mmseqs cluster {params.prots_db} {params.out_prefix} {output.tmp_dir} \
+            -c 0 --min-seq-id 0 -s 7.5 --cluster-steps 4 --threads {threads} \
+            --cluster-reassign >> {log.clust} ;
+        mmseqs createtsv {params.prots_db} {params.prots_db} {params.out_prefix} \
             {output.tsv} >> {log.tsv} ;
-        rm -rf results/6_clustering/clustering* results/6_clustering/db
+        rm -rf {params.out_prefix}* {params.prots_db_dir}
         """
 
 rule calculate_shared_prots:
@@ -33,27 +35,27 @@ rule calculate_shared_prots:
         prots_files = get_prots_files,
         tsv = rules.proteins_clustering.output.tsv
     output:
-        presabs = "results/6_clustering/presabs_matrix.txt",
-        shared  = "results/6_clustering/shared_content_matrix.txt",
-        nprots  = "results/6_clustering/nprots_cluster.txt",
-        table_clustering_ids = "results/6_clustering/table_clustering_ids.tsv"
+        presabs = "results/{analysis_id}/6_protein_clustering/presabs_matrix.txt",
+        shared = "results/{analysis_id}/6_protein_clustering/shared_content_matrix.txt",
+        shared_all  = "results/{analysis_id}/6_protein_clustering/shared_content_matrix_all.txt",
+        nprots = "results/{analysis_id}/6_protein_clustering/nprots_cluster.txt",
+        table_clustering_ids = "results/{analysis_id}/6_protein_clustering/table_clustering_ids.tsv"
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     threads: 999
     conda:
-        "../../envs/utils.yaml"
+        "../envs/utils.yaml"
     script:
-        "../../scripts/calculate_shared_content.py"
+        "../scripts/calculate_shared_content.py"
 
 rule protein_content_taxa:
     input:
-        matrix_shared = rules.calculate_shared_prots.output.shared,
-        markers_table = "results/5_phylogenies/taxonomic_classification.txt"
+        matrix_shared = rules.calculate_shared_prots.output.shared
     output:
-        "results/6_clustering/shared_content_taxonomy.txt"
+        "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt"
     params:
-        taxonomy = "resources/crass_taxonomy.txt"
+        taxonomy = "resources/crassus_dependencies/reference_taxonomy_subfamily.txt"
     conda:
-        "../../envs/phylogenies.yaml"
+        "../envs/phylogenies.yaml"
     script:
-        "../../scripts/taxonomy_from_clustering.py"
+        "../scripts/get_taxonomy_prot_clustering.py"

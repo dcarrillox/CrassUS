@@ -1,5 +1,7 @@
 old/
 database_update/
+crassus_dependencies/
+resources/crassus_dependencies/
 
 resources/.gggenomes_install_done
 yutin_trees/

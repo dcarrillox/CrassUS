@@ -26,14 +26,14 @@ for sample in samples:
             with open(out_file, "w") as fout:
                 SeqIO.write(records[contig], fout, "fasta")
 
-
-## update genomes list for the fastANI step later.
-# first read the list with the genomes from the database
-lines = [line.strip() for line in open(snakemake.params.genomes_list).readlines()]
-# then update the list with the found genomes
-for contig in contigs:
-    lines.append(f"{snakemake.params.contigs_dir}/{contig}.fasta")
-# write to file
-with open(snakemake.output.fastani_list, "w") as fout:
-    for line in lines:
-        fout.write(f"{line}\n")
+### BORRAR?? Creo que el fastani_list no lo uso ya nunca mas #####
+# ## update genomes list for the fastANI step later.
+# # first read the list with the genomes from the database
+# lines = [line.strip() for line in open(snakemake.params.genomes_list).readlines()]
+# # then update the list with the found genomes
+# for contig in contigs:
+#     lines.append(f"{snakemake.params.contigs_dir}/{contig}.fasta")
+# # write to file
+# with open(snakemake.output.fastani_list, "w") as fout:
+#     for line in lines:
+#         fout.write(f"{line}\n")

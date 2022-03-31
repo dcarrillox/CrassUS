@@ -1,17 +1,24 @@
 include: "rules/common.smk"
 
-
 rule all:
     input:
-        #generate_plots,
-        #"results/6_clustering/shared_content_taxonomy.txt",
-        #"results/7_ANI/ani_genus_species_taxonomy.txt",
-        #"results/crassus_results.txt"
-        #"results/aggregated_signals.txt",
-        #"results/prefinal_table.txt",
-        "results/4_ORF/2_functional_annot_tables/.finished"
+        generate_plots,
+        expand([
+                "results/{analysis_id}/1_rename/{sample}.fasta",
+                "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt",
+                "results/{analysis_id}/2_six_frames/profiles_hits.txt",
+                "results/{analysis_id}/4_ORF/coding_summary.txt",
+                "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
+                "results/{analysis_id}/5_phylogenies/markers_classification.txt",
+                "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt",
+                "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt",
 
+                "results/{analysis_id}/aggregated_signals.txt",
+                "results/{analysis_id}/crassus_results.tsv",
 
+                #"results/{analysis_id}/prefinal_table.txt"
+                ],
+                sample=SAMPLES, analysis_id=ANALYSES_IDS)
 
 
 
@@ -22,46 +29,3 @@ include: "rules/phylogenetic_trees.smk"
 include: "rules/protein_clustering.smk"
 include: "rules/assess_taxonomy.smk"
 include: "rules/genomes_alignments.smk"
-
-
-### TerL MSA ###
-# MAFFT can add a sequence(s) to an existing MSA via the --add option
-# https://mafft.cbrc.jp/alignment/software/addsequences.html
-# So, two options here:
-#   1) Using only the type strains terminases (~280), MAFFT should be quick with this,
-#      we already did this in CoCalc COOIII.
-#   2) Using all the classified contigs (~860), not sure how quick MAFFT would be
-#      After my meeting with Bas (26/08/2021), I go with this option not only for the
-#      TerL tree but for the whole reference of genomes and proteins.
-
-
-########
-# split heatmap
-########
-# https://stackoverflow.com/questions/63530701/python-package-to-plot-two-heatmaps-in-one-split-each-square-into-two-triangles
-#
-
-########
-# pyani cmd
-########
-# blastn -out results/7_ANI/1_most_similar/F_434_103281/blastn_output/F_434_103281_vs_Rampelli_10024_NODE_19_length_105296_cov_11.084995.blast_tab
-# -query results/7_ANI/1_most_similar/F_434_103281/blastn_output/F_434_103281-fragments.fasta
-# -db results/7_ANI/1_most_similar/F_434_103281/blastn_output/Rampelli_10024_NODE_19_length_105296_cov_11.084995.fasta
-# -xdrop_gap_final 150 -dust no -evalue 1e-15 -max_target_seqs 1
-# -outfmt '6 qseqid sseqid length mismatch pident nident qlen slen qstart qend sstart send positive ppos gaps' -task blastn
-
-
-'''
-~ SINGULARITY CONTAINER ~
-
-1) Create a env.yml file for the conda env that will be create in the container
-$ mamba create -c conda-forge -c bioconda -n container blast=2.11 biopython=1.77 python=3.9 hmmer seaborn matplotlib pandas numpy pyani mmseqs2
-$ conda env export --name container > container.yml
-
-2) Write definition file and build
-$ sudo /home/dani/miniconda3/bin/singularity build container.sif container.def
-
-3) upload to the library
-$ singularity sign container.sif  #singul1243
-$ singularity push container.sif library://dcarrillo/default/crassus:0.1
-'''
