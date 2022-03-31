@@ -32,13 +32,14 @@ wildcard_constraints:
     sample_transeq="|".join(sample_sheet.index),
 
 
-########## Check reference db ############
-if not os.path.isfile("./resources/crassus_dependencies/version"):
-    print("Setting up reference database and dependencies...")
-
-    # replace by Zenodo download
-    os.system("cp -r crassus_dependencies/ resources")
-    print("Done")
+########## Unzip reference db ############
+rule unzip_dependencies:
+    input:
+        "resources/crassus_dependencies.tar.gz"
+    output:
+        "resources/crassus_dependencies/.unzip_done"
+    shell:
+        "tar zxf {input} && rm -f {input} ; touch {output}"
 
 
 

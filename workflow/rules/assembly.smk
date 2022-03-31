@@ -1,6 +1,7 @@
 rule filter_rename_assemblies:
     input:
-        get_raw_assemblies
+        get_raw_assemblies,
+        "resources/crassus_dependencies/.unzip_done"
     output:
         fasta = "results/{analysis_id}/1_rename/{sample}.fasta",
         table = "results/{analysis_id}/1_rename/{sample}.table"
