@@ -135,7 +135,7 @@ def generate_plots(wildcards):
     if config["plot"]["generate_plots"]:
         return f"results/{analysis_id}/7_ANI/.gggenomes_done"
     else:
-        return f"results/{analysis_id}"
+        return f"results/{analysis_id}/crassus_results.tsv"
 
 def gather_gggenomes(wildcards):
     checkpoint_output = checkpoints.prepare_gggenomes_data.get(**wildcards).output[0]
