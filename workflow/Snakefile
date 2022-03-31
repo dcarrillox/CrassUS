@@ -8,7 +8,7 @@ rule all:
                 "results/{analysis_id}/2_six_frames/1_screening/{sample}.domtxt",
                 "results/{analysis_id}/2_six_frames/profiles_hits.txt",
                 "results/{analysis_id}/4_ORF/coding_summary.txt",
-                "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
+                "results/{analysis_id}/4_ORF/3_functional_annot_tables/.finished",
                 "results/{analysis_id}/5_phylogenies/markers_classification.txt",
                 "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt",
                 "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt",

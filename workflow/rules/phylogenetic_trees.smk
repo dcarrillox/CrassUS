@@ -105,7 +105,7 @@ rule parse_trees:
     input:
         markers_trees = gather_trees,
         markers_summary = "results/{analysis_id}/5_phylogenies/markers_summary.txt"
-    output:
+    output:zz
         "results/{analysis_id}/5_phylogenies/markers_classification.txt",
     params:
         taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt"
