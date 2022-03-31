@@ -65,7 +65,7 @@ rule blast_representatives:
         makeblastdb -in {params.fasta_repr} -dbtype nucl -out {params.db} ;
         blastn -query {params.fasta_repr} -db {params.db} \
         -outfmt '6 std qlen slen' -max_target_seqs 10000 \
-        -out {output.tsv} -num_threads {threads}
+        -out {output.tsv} -num_threads {threads} -perc_identity 60
         """
 
 rule anicalc_genus:
@@ -148,7 +148,8 @@ rule plot_gggenomes:
     input:
         rules.install_gggenomes.output.done,
         blast = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.blast",
-        annot = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.annot"
+        annot = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.annot",
+        labels = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.labels",
     output:
         "results/{analysis_id}/7_ANI/2_plot/{gggdata}.png"
     params:

@@ -59,13 +59,13 @@ def process_genome_table(genome_id, crass_reference, func_annot, target_df):
 
 
 
-
 # ------------------------------------------------------------------------------------
 # read and filter anicalc results to keep only non-reference queries and non-self hits
 anicalc_df = pd.read_csv(snakemake.input.ani[0], sep="\t", header=0)
 
 # Load crass referemces
-crass_reference = {line.split("\t")[0] for line in open(snakemake.params.taxonomy).readlines()}
+lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()[1:]]
+crass_reference = {line[0]:line[1:] for line in lines}
 
 # Remove reference queries
 anicalc_df = anicalc_df[~anicalc_df.qname.isin(crass_reference)]
@@ -100,17 +100,36 @@ filtered_df = blast_df[blast_df.key.isin(ani_key_set)]
 filtered_df = filtered_df.merge(res, on = 'key', how = 'left')
 query_groups = filtered_df.groupby('qname')
 
+
+
+# ---------------------
+# Write to output files
 func_annot = ["TerL", "MCP", "portal", "primase", "DNApB", "PolA", "Tstab", "Ttub", "tail_fib"]
 
-
-
-# Write to output
 for query, query_df in query_groups:
     query_target_pair = query_groups.get_group(query)
 
     # group by key and make alignments straight for each of them
     key_groups = query_df.groupby("key").apply(make_straight_alignments)
     key_groups.to_csv(f"{snakemake.output[0]}/{query}.blast", sep="\t", index=False)
+
+    # write labels file
+    targets_labels = key_groups["tname"].unique()
+    to_write = ["label"]
+    # if there is a reference genome, it is the last of the list
+    if targets_labels[-1] in crass_reference:
+        targets_labels[-1] = ", ".join(crass_reference[targets_labels[-1]]) + f" ({targets_labels[-1]})"
+    # if there are two target genomes, the first one is a candidate contig and
+    # the last one is a reference Crassvirales
+    if len(targets_labels) == 2:
+        to_write += [targets_labels[0], query, targets_labels[1]]
+    # otherwise, there is only one target genome and it might be reference or not
+    else:
+        to_write += [query, targets_labels[0]]
+
+    with open(f"{snakemake.output[0]}/{query}.labels", "w") as fout:
+        fout.write("\n".join(to_write))
+
 
     # get genome tables for the genomes involved
     genomes = [query] + list(set(query_target_pair["tname"]))

@@ -1,7 +1,7 @@
 rule aggregate_signals:
     input:
         phylogenies = rules.parse_trees.output,
-        shared_prot = "results/{analysis_id}/6_clustering/shared_content_taxonomy.txt",
+        shared_prot = "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt",
         ani_cluster = "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt"
     output:
         "results/{analysis_id}/aggregated_signals.txt"
@@ -15,89 +15,11 @@ rule prefinal_table:
         rules.aggregate_signals.output,
         dtr_blast_done = gather_dtr
     output:
-        "results/{analysis_id}/prefinal_table.txt"
+        "results/{analysis_id}/crassus_results.tsv"
     params:
-        lengths = "resources/crassus_dependencies/taxas_average_length.txt"
+        lengths = "resources/crassus_dependencies/taxas_average_length.txt",
+        ids_dir = "results/{analysis_id}/1_rename"
     conda:
         "../envs/utils.yaml"
     script:
-        "../scripts/prefinal_table.py"
-
-
-# rule assess_completeness:
-#     input:
-#         taxa_markers = rules.parse_trees.output,
-#
-#     output:
-#         "results/5_phylogenies/taxonomic_classification_completeness.txt"
-#     params:
-#         lengths = "resources/taxas_average_length.txt"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/assess_completeness.py"
-
-
-
-
-
-
-
-# rule aggregate_taxa_sources:
-#     input:
-#         markers_trees = gather_trees,
-#         taxa_markers  = rules.assess_completenes.output,
-#         taxa_shared = rules.protein_content_taxa.output
-#     output:
-#         "results/5_phylogenies/taxonomic_classification_completeness_protshared.txt"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt",
-#         lengths = "resources/taxas_average_length.txt"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/protshared_taxa_to_trees.py"
-#
-# rule assess_unknown_genomes:
-#     input:
-#         markers_trees = gather_trees,
-#         taxa_assessments = rules.aggregate_taxa_sources.output,
-#         genome_tables = rules.genome_tables_finished.output,
-#         sharing_percentages = rules.calculate_shared_prots.output.shared
-#     output:
-#         "results/5_phylogenies/unknown_genomes.txt"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt",
-#         geno_tables_dir = "results/4_ORF/2_functional_annot_tables"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/assess_unknown_genomes.py"
-#
-#
-# rule assess_new_genera:
-#     input:
-#         markers_trees = gather_trees,
-#         taxa_markers  = rules.aggregate_taxa_sources.output,
-#         taxa_shared = rules.protein_content_taxa.output
-#     output:
-#         "results/5_phylogenies/taxonomic_classification_completeness_protshared_newgen.txt"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt"
-#     conda:
-#         "../../envs/phylogenies.yaml"
-#     script:
-#         "../../scripts/assess_new_genera.py"
-#
-# rule assess_species:
-#     input:
-#         pyani = get_pyani,
-#         taxa_table = rules.assess_new_genera.output
-#     output:
-#         "results/7_ANI/taxonomic_classification_completeness_protshared_newgen_species.txt"
-#     params:
-#         taxonomy = "resources/crass_taxonomy.txt"
-#     conda:
-#         "../../envs/utils.yaml"
-#     script:
-#         "../../scripts/assess_species.py"
+        "../scripts/final_table.py"
