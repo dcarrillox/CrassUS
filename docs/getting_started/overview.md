@@ -8,4 +8,4 @@ families, subfamilies, genera and species of the order.
 
 Flowchart below describes the main steps in the pipeline:
 
-![Flowchart](img/flowchart.png)
+![Flowchart](../img/flowchart.png)
