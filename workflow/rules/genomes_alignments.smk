@@ -137,7 +137,7 @@ checkpoint prepare_gggenomes_data:
         directory("results/{analysis_id}/7_ANI/2_plot")
     params:
         taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt",
-        genome_tables_dir = "results/{analysis_id}/4_ORF/2_functional_annot_tables",
+        genome_tables_dir = "results/{analysis_id}/4_ORF/3_functional_annot_tables",
         ref_genome_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
     conda:
         "../envs/utils.yaml"
