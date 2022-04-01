@@ -224,7 +224,7 @@ def assess_family(contigs_signals, genome):
                 family = marker[0]
                 family_evidence = "phylogenies, shared_prots"
             else:
-                family = "NA"
+                family = ""
         # markers and prot_shared are not identical
         else:
             # unknown by marker, known by protshared (only one family predicted)
