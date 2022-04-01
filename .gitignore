@@ -36,7 +36,6 @@ mafft_test*
 .Rhistory
 bas_ggtree.R
 tree_fig*.svg
-*.png
 mafft_iqtree_test*
 trees_benchmark*
 writing/*
