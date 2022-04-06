@@ -4,11 +4,10 @@ import os, glob, multiprocessing
 
 # envs: utils.yaml
 
+
 # ----------------------------------------------------------------------------
 # read "aggregated_signals.txt" and init a dict to the store different signals
 aggregated_df = pd.read_csv(snakemake.input[0], sep="\t", header=0, index_col=0)
-#file = "/home/danielc/projects/CrassUS/results/ancient/aggregated_signals.txt"
-#aggregated_df = pd.read_csv(file, sep="\t", header=0, index_col=0)
 
 contigs_signals = {contig: {
                             "phylogenies": {
@@ -41,6 +40,9 @@ def get_markers_annot(genome, markers, df):
     family = list()
     subfam = list()
     genus  = list()
+
+    # if genome == "Baboon19_894_46906":
+    #     print(families)
 
     if families:
         # check family by markers
@@ -96,6 +98,17 @@ def get_protshared_annot(genome, df):
 
             if value_shared >= genus_cutoff:
                 genera = df.loc[genome, "prot_most_similar_ref_genus"].split(",")
+        #     else:
+        #         genera = ["unknown"]
+        #
+        # else:
+        #     families = ["unknown"]
+        #     genera = ["unknown"]
+
+    # if genome == "Baboon19_140_109222":
+    #     print(genome)
+    #     print(families)
+    #     print(genera)
 
     return families, genera
 
@@ -141,7 +154,7 @@ for genome in aggregated_df.index:
 # init the final DataFrame
 columns = ["crassus_id", "contig", "sample", "length", "len/taxa_len", "ref_taxa", "DTR",
            "family", "subfamily", "genus", "species",
-           "evidence_family", "evidence_genus", "notes"]
+           "evidence_family", "evidence_genus", "notes", "discard"]
 final_df = pd.DataFrame(columns=columns)
 final_df["crassus_id"] = aggregated_df.index
 final_df.set_index("crassus_id", inplace=True)
@@ -216,28 +229,77 @@ def assess_family(contigs_signals, genome):
     marker = contigs_signals[genome]["phylogenies"]["family"]
     protshared = contigs_signals[genome]["shared_prots"]["family"]
 
-    # one or none family was predicted by markers
+    if genome == "Baboon19_708_52401":
+        print(genome)
+        print("marker:", marker)
+        print("prot:", protshared)
+
+    # one or none family were predicted by markers
+
+    # print(genome)
+    # print(marker)
+    # print(protshared)
+    # print()
+
     if len(marker) <= 1:
         # markers and prot_shared are identical
         if marker == protshared:
-            if marker and protshared: # make sure there is an annotation
+            # check there are assignments
+            if marker and protshared:
                 family = marker[0]
                 family_evidence = "phylogenies, shared_prots"
             else:
                 family = ""
+                family_evidence = "phylogenies, shared_prots"
+
         # markers and prot_shared are not identical
         else:
-            # unknown by marker, known by protshared (only one family predicted)
-            if (marker == ["unknown"] or not marker) and len(protshared) == 1:
-                family = protshared[0]
-                family_evidence = "shared_prots"
-            # kwnon by marker, unknown by protshared
-            elif (marker != ["unknown"] and marker) and not protshared:
-                family = marker[0]
-                family_evidence = "phylogenies"
+            # not signal by markers
+            if not marker:
+                # check number of families predicted by shared prots
+                if protshared:
+                    if len(protshared) > 1:
+                        family = "unknown"
+                        family_evidence = "shared_prots"
+                        note = "multiple families by shared prots"
+                    if len(protshared) == 1:
+                        family = protshared[0]
+                        family_evidence = "shared_prots"
+                    else:
+                        family = ""
+
+            else:
+                # unknown by marker, known by protshared, one or more families
+                if marker == ["unknown"]:
+                    if len(protshared) > 1:
+                        family = "unknown"
+                        family_evidence = "phylogenies, shared_prots"
+                        note = "multiple families by shared prots"
+                    elif len(protshared) == 1:
+                        family = protshared[0]
+                        family_evidence = "shared_prots"
+                    else:
+                        family = "unknown"
+                        family_evidence = "phylogenies, shared_prots"
+
+                # kwnon by marker, unknown by protshared
+                elif marker != ["unknown"] and not protshared:
+                    family = marker[0]
+                    family_evidence = "phylogenies"
+                    note = "shared proteins below the family cutoff"
+                # known by marker, multiple families by shared
+                elif marker != ["unknown"] and len(protshared) > 1:
+                    if marker[0] in protshared:
+                        family = marker[0]
+                        family_evidence = "phylogenies, shared_prots"
+                        note = "multiple families by shared prots"
+
 
     else:
         note = "multiple families in phylogenies"
+
+    # if genome == "Baboon19_1549_35692":
+    #     print(family)
 
     return family, family_evidence, note
 
@@ -267,8 +329,25 @@ def assess_genus(contigs_signals, genome):
     protshared = contigs_signals[genome]["shared_prots"]["genus"]
     ani = contigs_signals[genome]["ani"]["genus"]
 
+    # if genome == "Baboon19_140_109222":
+    #     print(genome)
+    #     print(marker)
+    #     print(protshared)
+    #     print(ani)
+
+    # print(genome)
+    # print(marker)
+    # print(protshared)
+    # print(ani)
+    # print()
+
+
+    # check the genome got results by ANI
+    if ani:
+        genus_evidence = "ani"
+
+
     # there is a ref genus assigned by ani
-    genus_evidence = "ani"
     genus = ani
     if "genus__" not in ani:
         # check if it matches with protshared
@@ -280,8 +359,6 @@ def assess_genus(contigs_signals, genome):
     else:
         if not protshared:
             genus_evidence = "ani, shared_prots"
-            if not marker:
-                genus_evidence = "ani, shared_prots, phylogenies"
 
 
     return genus, genus_evidence
@@ -304,32 +381,75 @@ def assess_completeness(df, taxas_lengths, genome):
     subfamily = df.loc[genome, "subfamily"]
     family = df.loc[genome, "family"]
 
-    # print(genome)
-    # print(species)
-    # print(family)
-
-    if not pd.isnull(species) and "species__" not in species:
+    if species and "species__" not in species:
         deepest = species
-    elif not pd.isnull(genus) and "genus__" not in genus:
+    elif genus and "genus__" not in genus:
         deepest = genus
-    elif not pd.isnull(subfamily) and subfamily != "unknown":
+    elif subfamily not in ["unknown", ""]:
         deepest = subfamily
-    elif not pd.isnull(family) and family != "unknown":
+    elif family not in ["unknown", ""]:
         deepest = family
     else:
-        deepest = str()
+        deepest = "unknown"
 
     # calculate the completeness proxy
-    if deepest:
+    if deepest != "unknown":
         proxy = round(df.loc[genome, "length"]/taxas_lengths[deepest], 3)
 
         df.loc[genome, "len/taxa_len"] = proxy
         df.loc[genome, "ref_taxa"] = deepest
 
+# -------------------------------------------------------------
+# Parse taxonomy. For each reference genus, store its subfamily
+lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()[1:]]
+genus_subfamily = {line[3]:line[2] for line in lines}
+
+def assign_subfamily_sharedprots_ani(df, genus_subfamily, genome):
+    genus = df.loc[genome, "genus"]
+    subfamily = df.loc[genome, "subfamily"]
+
+    if genus and "genus__" not in genus:
+        if not subfamily or pd.isnull(subfamily):
+            df.loc[genome, "subfamily"] = genus_subfamily[genus]
+
+
+
+
+
+
+def check_no_signals_genomes(final_df, genome):
+
+    note = str()
+
+    # check if the genome has any assignment at family and subfamily levels
+    discard = True
+    check_columns = ["family", "subfamily"]
+    for column in check_columns:
+        value = final_df.loc[genome, column]
+        if value and not pd.isnull(value):
+            discard = False
+
+    if discard:
+        # remove genus & species assignments
+        final_df.loc[genome, "genus"] = ""
+        final_df.loc[genome, "species"] = ""
+        final_df.loc[genome, "evidence_genus"] = ""
+
+
+        note = "no signals"
+
+
+    # check the genome has
+
+
+
+    return discard, note
+
+
+
 
 
 for genome in final_df.index:
-
     notes = list()
 
     # Family
@@ -357,9 +477,9 @@ for genome in final_df.index:
         notes.append(note)
 
 
-    # write notes if necessary
-    if notes:
-        final_df.loc[genome, "notes"] = "; ".join(notes)
+    # for genomes classified only by shared prots and ani, assign the subfamily
+    # based on the assigned genus, if this is one of the reference genus
+    assign_subfamily_sharedprots_ani(final_df, genus_subfamily, genome)
 
 
     # write completeness
@@ -367,156 +487,20 @@ for genome in final_df.index:
 
 
 
+
+
+    # check if there is any signal at all. Otherwise, mark the genome as discard=True
+    discard, note = check_no_signals_genomes(final_df, genome)
+    final_df.loc[genome, "discard"] = discard
+    if note:
+        notes.append(note)
+
+
+    # write notes if necessary
+    if notes:
+        final_df.loc[genome, "notes"] = "; ".join(notes)
+
+
 # Write to final output file
+final_df.sort_values(by=["sample", "length", "discard"], ascending=[True, False, True], inplace=True)
 final_df.to_csv(snakemake.output[0], sep="\t", header=True, index=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# for genome in contigs_signals:
-#     print(genome, contigs_signals[genome])
-#     print()
-
-
-
-
-
-
-#
-# def assess_genus(genome, df):
-#     check = False
-#     # check the prots shared are higher than the cutoff for the genus
-#     if df.loc[genome, "shared_prot_ref"] >= float(snakemake.config["shared_prots_cutoffs"]["genus"]):
-#         shared_genera = df.loc[genome, "prot_most_similar_ref_genus"].split(",")
-#         # check the AF is higher than the cutoff
-#         if df.loc[genome, "qcov"] >= 50:
-#             # check if the genus called by AF agrees with one of the called by shared_prots
-#             af_genus = df.loc[genome, "AF_most_similar_ref_genus"]
-#             if af_genus in shared_genera:
-#                 genus = af_genus
-#                 check = True
-#     if not check:
-#         genus = df.loc[genome, "AF_genus"]
-#
-#     return genus
-#
-#
-#
-
-#
-# dtr_genomes = set(dtr_genomes)
-#
-# # read average lengths for each rank, store to dict
-# lines = [line.strip().split("\t") for line in open(snakemake.params.lengths).readlines()]
-# taxas_lengths = {line[0]:float(line[1]) for line in lines}
-#
-# ##
-# # read aggregated results
-# aggregated_df = pd.read_csv(snakemake.input[0], sep="\t", header=0, index_col=0)
-#
-# # get markers from the table itself
-# markers = [column.split("family_")[1] for column in aggregated_df.columns if column.startswith("family_")]
-#
-# # init the dict to store the information when iterating the aggregated table: k=genome  v=columns
-# to_write = {genome :{"genome": genome,
-#                      "len/taxa_len":"",
-#                      "ref_taxa":str(),
-#                      "DTR":"no",
-#                      "family":str(),
-#                      "subfamily":str(),
-#                      "genus":str(),
-#                      "species":str(),
-#                      "family_evidence":list(),
-#                      "notes":list()
-#                     }
-#             for genome in aggregated_df.index}
-#
-#
-#
-#
-#
-# # iterate the genomes while assessing their final taxonomy
-# for genome in aggregated_df.index:
-#     genome_length = float(genome.split("_")[-1])
-#     # get family and subfamily from markers
-#     marker_fam, marker_subfam, marker_genus = get_markers_annot(genome, markers, aggregated_df)
-#
-#     # check if shared prot validates the marker assignment
-#     # to_write[genome]["family"] = marker_fam
-#     # to_write[genome]["subfamily"] = marker_subfam
-#
-#     # check family given by shared_prots
-#     family_shared = family_by_shared(genome, aggregated_df)
-#     # compare the family/ies to the marker one. If the later is unknown, then we can call the shared one
-#     if family_shared:
-#         if marker_fam not in ["", "unknown"]:
-#             if marker_fam not in family_shared:
-#                 to_write[genome]["notes"].append("shared prots with family below 20%")
-#             else:
-#                 to_write[genome]["family"] = marker_fam
-#                 to_write[genome]["subfamily"] = marker_subfam
-#                 to_write[genome]["family_evidence"].append("phylogenies")
-#                 to_write[genome]["family_evidence"].append("shared prots")
-#         else:
-#             if len(family_shared) == 1:
-#                 to_write[genome]["family"] = family_shared[0]
-#                 to_write[genome]["subfamily"] = marker_subfam
-#                 to_write[genome]["family_evidence"].append("shared prots")
-#     else:
-#         to_write[genome]["family"] = marker_fam
-#         to_write[genome]["subfamily"] = marker_subfam
-#         to_write[genome]["family_evidence"].append("phylogenies")
-#         if marker_fam not in ["", "unknown"]:
-#             to_write[genome]["notes"].append("shared prots with family below 20%")
-#
-#
-#
-#
-#     # get genus & species
-#     genus = assess_genus(genome, aggregated_df)
-#     to_write[genome]["genus"] = genus
-#     to_write[genome]["species"] = aggregated_df.loc[genome, "ani_species"]
-#
-#     # check if DTR
-#     if genome in dtr_genomes:
-#         to_write[genome]["DTR"] = "yes"
-#
-#     # assess completeness based on the lowest rank assigned
-#     compl = ""
-#     if not genus.startswith("genus__"):
-#         to_write[genome]["ref_taxa"] = genus
-#         compl = round(genome_length/taxas_lengths[genus] , 2)
-#     else:
-#         if to_write[genome]["subfamily"] not in  ["", "unknown"]:
-#             to_write[genome]["ref_taxa"] = to_write[genome]["subfamily"]
-#             compl = round(genome_length/taxas_lengths[to_write[genome]["subfamily"]] , 5)
-#         elif to_write[genome]["family"] not in  ["", "unknown"]:
-#             to_write[genome]["ref_taxa"] = to_write[genome]["family"]
-#             compl = round(genome_length/taxas_lengths[to_write[genome]["family"]] , 5)
-#     to_write[genome]["len/taxa_len"] = compl
-#
-#     # join notes & family_evidence
-#     to_write[genome]["notes"] = ";".join(to_write[genome]["notes"])
-#     to_write[genome]["family_evidence"] = ";".join(to_write[genome]["family_evidence"])
-#
-#
-# to_write_df = pd.DataFrame.from_dict(to_write, orient="index")
-# to_write_df.to_csv(snakemake.output[0], index=False, sep="\t")

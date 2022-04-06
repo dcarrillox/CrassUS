@@ -10,7 +10,7 @@ rule aggregate_signals:
     script:
         "../scripts/aggregate_signals.py"
 
-rule prefinal_table:
+rule final_table:
     input:
         rules.aggregate_signals.output,
         dtr_blast_done = gather_dtr
@@ -18,7 +18,8 @@ rule prefinal_table:
         "results/{analysis_id}/crassus_results.tsv"
     params:
         lengths = "resources/CrassUS_db/taxas_average_length.txt",
-        ids_dir = "results/{analysis_id}/1_rename"
+        ids_dir = "results/{analysis_id}/1_rename",
+        taxonomy = 'resources/CrassUS_db/reference_taxonomy_subfamily.txt'
     conda:
         "../envs/utils.yaml"
     script:

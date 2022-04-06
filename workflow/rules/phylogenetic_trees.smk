@@ -112,4 +112,4 @@ rule parse_trees:
     conda:
         "../envs/phylogenies.yaml"
     script:
-        "../scripts/get_taxonomy_from_trees.py"
+        "../scripts/get_taxonomy_trees.py"

@@ -45,11 +45,10 @@ genera = list(set([crass_taxonomy[genome]["genus"] for genome in crass_taxonomy]
 
 # remove outgroup and NA
 families.remove("outgroup")
-families.remove("NA")
 subfamilies.remove("outgroup")
 subfamilies.remove("NA")
 genera.remove("outgroup")
-genera.remove("NA")
+
 
 
 
@@ -60,6 +59,18 @@ outgroups = {"TerL":"NC_021803|775|90", "MCP":"NC_021803|443|97", "portal":"NC_0
 for marker_tree in snakemake.input.markers_trees:
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
+
+
+    # correct Akihdevirus balticus (KC821624) for TerL
+    if marker == "TerL":
+        crass_taxonomy["KC821624_1_100418"] = {"family":"NA",
+                                               "subfamily":"NA",
+                                               "genus":"NA"}
+    else:
+        crass_taxonomy["KC821624_1_100418"] = {"family":"Steigviridae",
+                                               "subfamily":"Asinivirinae",
+                                               "genus":"Akihdevirus"}
+
 
     # init a list to store which genomes were included in the tree, so I can
     # say "Not found" in the final table
