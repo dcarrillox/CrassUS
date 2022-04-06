@@ -46,7 +46,7 @@ genera = list(set([crass_taxonomy[genome]["genus"] for genome in crass_taxonomy]
 # remove outgroup and NA
 families.remove("outgroup")
 subfamilies.remove("outgroup")
-subfamilies.remove("NA")
+subfamilies.remove("")
 genera.remove("outgroup")
 
 
