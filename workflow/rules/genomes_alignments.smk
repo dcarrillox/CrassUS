@@ -130,14 +130,14 @@ rule install_gggenomes:
 
 checkpoint prepare_gggenomes_data:
     input:
-        "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished",
+        "results/{analysis_id}/4_ORF/3_functional_annot_tables/.finished",
         ani = rules.anicalc_species.output,
         blast = rules.blast_all.output.tsv
     output:
         directory("results/{analysis_id}/7_ANI/2_plot")
     params:
         taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt",
-        genome_tables_dir = "results/{analysis_id}/4_ORF/2_functional_annot_tables",
+        genome_tables_dir = "results/{analysis_id}/4_ORF/3_functional_annot_tables",
         ref_genome_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
     conda:
         "../envs/utils.yaml"
@@ -153,7 +153,7 @@ rule plot_gggenomes:
     output:
         "results/{analysis_id}/7_ANI/2_plot/{gggdata}.png"
     params:
-        contigs_tables_dir = "results/{analysis_id}/4_ORF/2_functional_annot_tables/",
+        contigs_tables_dir = "results/{analysis_id}/4_ORF/3_functional_annot_tables/",
         reference_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
     conda:
         "../envs/plot_genomes.yaml"

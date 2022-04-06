@@ -80,9 +80,9 @@ rule create_genome_table:
         gff = "results/{analysis_id}/4_ORF/1_best_coding/{prots}.gff",
         faa = "results/{analysis_id}/4_ORF/1_best_coding/{prots}.faa",
         hmmtxt = rules.annotate_proteins_best_coding.output.outfile,
-        prots_clusters = "results/{analysis_id}/6_clustering/table_clustering_ids.tsv"
+        prots_clusters = "results/{analysis_id}/6_protein_clustering/table_clustering_ids.tsv"
     output:
-        "results/{analysis_id}/4_ORF/2_functional_annot_tables/{prots}.table"
+        "results/{analysis_id}/4_ORF/3_functional_annot_tables/{prots}.table"
     params:
         yutin_names = "resources/CrassUS_db/functional_annot/nicknames.txt"
     conda:
@@ -94,6 +94,6 @@ rule genome_tables_finished:
     input:
         get_genome_tables_finished
     output:
-        "results/{analysis_id}/4_ORF/2_functional_annot_tables/.finished"
+        "results/{analysis_id}/4_ORF/3_functional_annot_tables/.finished"
     shell:
         "touch {output}"

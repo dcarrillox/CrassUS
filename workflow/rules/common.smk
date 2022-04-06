@@ -37,10 +37,12 @@ rule unzip_dependencies:
     input:
         "resources/crassus_dependencies.tar.gz"
     output:
-        dir = "resources/CrassUS_db",
+        db_dir = directory("resources/CrassUS_db"),
         mock = "resources/CrassUS_db/.unzip_done"
+    params:
+        resources_dir = "resources"
     shell:
-        "tar zxf {input} --directory {output.dir} && rm -f {input} ; touch {output.mock}"
+        "tar zxf {input} --directory {params.resources_dir} ; touch {output.mock}"
 
 
 
@@ -68,7 +70,7 @@ def get_prots_files(wildcards): # used
 def get_genome_tables_finished(wildcards): # used
     checkpoint_output = checkpoints.pick_best_coding.get(**wildcards).output[0]
     genome_tables = expand(
-                        "results/{analysis_id}/4_ORF/2_functional_annot_tables/{best_coding}.table",
+                        "results/{analysis_id}/4_ORF/3_functional_annot_tables/{best_coding}.table",
                         analysis_id=ANALYSES_IDS[0],
                         best_coding=glob_wildcards(f"{checkpoint_output}/{{best_coding}}.faa").best_coding,
                         )
