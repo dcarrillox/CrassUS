@@ -136,12 +136,18 @@ def gather_trees(wildcards): # used
                     analysis_id=ANALYSES_IDS[0],
                     marker=final_markers
                     )
-    dist_files = expand("results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.dist",
+
+    # ask for iToL files as well to trigger its execution.
+    tree_itol_files = expand("results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.nwk",
+                    analysis_id=ANALYSES_IDS[0],
+                    marker=final_markers
+                    )
+    annot_itol_files = expand("results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.txt",
                     analysis_id=ANALYSES_IDS[0],
                     marker=final_markers
                     )
 
-    return tree_files
+    return tree_files + tree_itol_files + annot_itol_files
 
 def gather_dtr(wildcards): # used
     checkpoint_output = checkpoints.get_matching_contigs.get(**wildcards).output[0]

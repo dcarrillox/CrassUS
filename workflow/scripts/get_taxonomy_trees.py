@@ -13,7 +13,7 @@ crassus_contigs = markers_summary.index.to_list()
 
 # ----------------------------------------
 # get which markers underwent the analysis
-markers = [os.path.basename(tree_file).split("_trimmed.nwk")[0] for tree_file in snakemake.input.markers_trees]
+markers = [os.path.basename(tree_file).split("_trimmed.nwk")[0] for tree_file in snakemake.input.markers_trees if "iToL" not in tree_file]
 markers = sorted(markers, reverse=True)
 
 
@@ -56,7 +56,10 @@ genera.remove("outgroup")
 # go throug the markers trees and parse them
 outgroups = {"TerL":"NC_021803|775|90", "MCP":"NC_021803|443|97", "portal":"NC_021803|812|91"}
 
-for marker_tree in snakemake.input.markers_trees:
+# discard iToL files from the input list
+markers_trees =[file for file in snakemake.input.markers_trees if "iToL" not in file]
+
+for marker_tree in markers_trees:
     # get the marker
     marker = os.path.basename(marker_tree).split("_trimmed.nwk")[0]
 

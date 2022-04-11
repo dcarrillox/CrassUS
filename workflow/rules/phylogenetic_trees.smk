@@ -101,6 +101,20 @@ rule make_trees:
     shell:
         "fasttree -quiet -nopr -log {log} {input} > {output}"
 
+rule prepare_itol:
+    input:
+        rules.make_trees.output
+    output:
+        tree = "results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.nwk",
+        annot = "results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.txt"
+    params:
+        taxonomy = "resources/CrassUS_db/reference_taxonomy_subfamily.txt",
+        dir = "results/{analysis_id}/5_phylogenies/3_iToL"
+    conda:
+        "../envs/phylogenies.yaml"
+    script:
+        "../scripts/prepare_itol.py"
+
 rule parse_trees:
     input:
         markers_trees = gather_trees,

@@ -87,7 +87,7 @@ res = res[['key', 'group']]
 names = ["qname", "tname", "perc_sim", "aln_len", "mismatch", "gap", "qstart", "qend", "tstart_tmp", "tend_tmp", "evalue", "std", "qlen", "slen"]
 blast_df = pd.read_csv(snakemake.input.blast, sep="\t", names=names)
 # remove alignments shorter than the cutoff
-min_aln_len = int(snakemake.config["plot"]["aln_min_len"])
+min_aln_len = int(snakemake.config["genomes_plot"]["aln_min_len"])
 blast_df = blast_df[blast_df["aln_len"] >= min_aln_len]
 blast_df['key'] = blast_df['qname'] + '@' + blast_df['tname']
 
