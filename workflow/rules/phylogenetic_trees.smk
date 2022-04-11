@@ -59,8 +59,8 @@ rule multiple_sequence_alignment:
     output:
         "results/{analysis_id}/5_phylogenies/1_MSAs/{marker}.msa"
     params:
-        mode = "mafft-einsi" if config["phylogenies"]["einsi"] else "mafft-fftnsi --maxiterate 1000"
-    threads: 10
+        mode = "mafft-einsi" if config["phylogenies"]["msa_software"]["einsi"] else "mafft-fftnsi --maxiterate 1000"
+    threads: config["phylogenies"]["msa_software"]["threads"]
     conda:
         "../envs/phylogenies.yaml"
     log:
@@ -89,21 +89,46 @@ rule msa_trimming:
     shell:
         "trimal -in {input} -out {output} -gt 0.9 &> {log}"
 
-rule make_trees:
-    input:
-        rules.msa_trimming.output
-    output:
-        "results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.nwk"
-    conda:
-        "../envs/phylogenies.yaml"
-    log:
-        "logs/{analysis_id}/trees/{marker}.log"
-    shell:
-        "fasttree -quiet -nopr -log {log} {input} > {output}"
+
+if config["phylogenies"]["tree_software"]["iqtree"]:
+    rule make_trees_iqtree:
+        input:
+            rules.msa_trimming.output
+        output:
+            iqtree = "results/{analysis_id}/5_phylogenies/2_trees/iqtree_{marker}/{marker}_trimmed.treefile",
+            final_tree = "results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.nwk"
+        params:
+            dir = "results/{analysis_id}/5_phylogenies/2_trees/iqtree_{marker}",
+            prefix = "results/{analysis_id}/5_phylogenies/2_trees/iqtree_{marker}/{marker}_trimmed",
+        conda:
+            "../envs/phylogenies.yaml"
+        threads: config["phylogenies"]["tree_software"]["threads"]
+        log:
+            "logs/{analysis_id}/trees/{marker}.log"
+        shell:
+            """
+            mkdir {params.dir}
+            iqtree -s {input} --prefix {params.prefix} -T AUTO --threads-max {threads} -B 1000 --mset LG --quiet
+            cp {output.iqtree} {output.final_tree}
+            """
+else:
+    rule make_trees_fastree:
+        input:
+            rules.msa_trimming.output
+        output:
+            "results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.nwk"
+        conda:
+            "../envs/phylogenies.yaml"
+        log:
+            "logs/{analysis_id}/trees/{marker}.log"
+        shell:
+            "fasttree -quiet -nopr -log {log} {input} > {output}"
+
+
 
 rule prepare_itol:
     input:
-        rules.make_trees.output
+        "results/{analysis_id}/5_phylogenies/2_trees/{marker}_trimmed.nwk"
     output:
         tree = "results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.nwk",
         annot = "results/{analysis_id}/5_phylogenies/3_iToL/{marker}_iToL.txt"

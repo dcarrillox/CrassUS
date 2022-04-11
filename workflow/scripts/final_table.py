@@ -85,8 +85,8 @@ for genome in aggregated_df.index:
 # ----------------------------
 # Parse protein shared content
 def get_protshared_annot(genome, df):
-    family_cutoff = float(snakemake.config["shared_proteins"]["cutoffs"]["family"])
-    genus_cutoff = float(snakemake.config["shared_proteins"]["cutoffs"]["genus"])
+    family_cutoff = float(snakemake.config["shared_proteins"]["taxa_cutoffs"]["family"])
+    genus_cutoff = float(snakemake.config["shared_proteins"]["taxa_cutoffs"]["genus"])
 
     families = list()
     genera = list()

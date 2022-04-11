@@ -31,14 +31,31 @@ properties:
         type: number
         default: 0.5
 
-      einsi:
-        type: boolean
-        default: False
+      msa_software:
+        type: object
+        properties:
+          einsi:
+            type: boolean
+            default: False
+          threads:
+            type: integer
+            default: 12
+
+      tree_software:
+        type: object
+        properties:
+          iqtree:
+            type: boolean
+            default: False
+          threads:
+            type: integer
+            default: 12
+
 
   shared_proteins:
     type: object
     properties:
-      cutoffs:
+      taxa_cutoffs:
         type: object
         properties:
           family:
@@ -47,6 +64,7 @@ properties:
           genus:
             type: number
             default: 70
+
 
   genomes_plot:
     type: object
