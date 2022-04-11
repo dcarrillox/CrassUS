@@ -85,8 +85,8 @@ for genome in aggregated_df.index:
 # ----------------------------
 # Parse protein shared content
 def get_protshared_annot(genome, df):
-    family_cutoff = float(snakemake.config["shared_prots_cutoffs"]["family"])
-    genus_cutoff = float(snakemake.config["shared_prots_cutoffs"]["genus"])
+    family_cutoff = float(snakemake.config["shared_proteins"]["cutoffs"]["family"])
+    genus_cutoff = float(snakemake.config["shared_proteins"]["cutoffs"]["genus"])
 
     families = list()
     genera = list()
@@ -229,10 +229,10 @@ def assess_family(contigs_signals, genome):
     marker = contigs_signals[genome]["phylogenies"]["family"]
     protshared = contigs_signals[genome]["shared_prots"]["family"]
 
-    if genome == "Baboon19_708_52401":
-        print(genome)
-        print("marker:", marker)
-        print("prot:", protshared)
+    # if genome == "Baboon19_708_52401":
+    #     print(genome)
+    #     print("marker:", marker)
+    #     print("prot:", protshared)
 
     # one or none family were predicted by markers
 

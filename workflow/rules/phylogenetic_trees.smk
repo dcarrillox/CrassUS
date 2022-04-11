@@ -59,7 +59,7 @@ rule multiple_sequence_alignment:
     output:
         "results/{analysis_id}/5_phylogenies/1_MSAs/{marker}.msa"
     params:
-        mode = "mafft-einsi" if config["mafft_msa"]["einsi"] else "mafft-fftnsi --maxiterate 1000"
+        mode = "mafft-einsi" if config["phylogenies"]["einsi"] else "mafft-fftnsi --maxiterate 1000"
     threads: 10
     conda:
         "../envs/phylogenies.yaml"

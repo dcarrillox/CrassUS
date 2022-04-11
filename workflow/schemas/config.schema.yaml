@@ -1,0 +1,63 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+description: snakemake configuration file
+
+properties:
+
+  sample_sheet:
+    type: string
+    description: path to the sample sheet file
+
+  phylogenies:
+    type: object
+    properties:
+      markers:
+        type: object
+        properties:
+          TerL:
+            type: boolean
+            default: True
+          MCP:
+            type: boolean
+            default: True
+          portal:
+            type: boolean
+            default: True
+
+      marker_cov:
+        type: number
+        default: 0.5
+
+      protein_cov:
+        type: number
+        default: 0.5
+
+      einsi:
+        type: boolean
+        default: False
+
+  shared_proteins:
+    type: object
+    properties:
+      cutoffs:
+        type: object
+        properties:
+          family:
+            type: number
+            default: 20
+          genus:
+            type: number
+            default: 70
+
+  genomes_plot:
+    type: object
+    properties:
+      generate_plots:
+        type: boolean
+        default: True
+      aln_min_len:
+        type: integer
+        default: 200
+
+
+required:
+  - sample_sheet

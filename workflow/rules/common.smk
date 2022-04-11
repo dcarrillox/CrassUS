@@ -5,20 +5,39 @@ from snakemake.utils import min_version
 
 
 configfile: "config/config.yaml"
-report: "report/workflow.rst"
+validate(config, "../schemas/config.schema.yaml")
 
 
 ###### Parse sample sheet ######
-sample_sheet = pd.read_table(config["sample_sheet"], comment='#').set_index("sample_id", drop=False)
+sample_sheet = pd.read_table(config["sample_sheet"], comment='#', dtype=str).set_index("sample_id", drop=False)
+validate(sample_sheet, "../schemas/samples.schema.yaml")
+
 # replace underscores in the samples_id by hyphen
 sample_sheet.index = sample_sheet.index.str.replace('_','-')
+# chere sample ids are unique
+if sample_sheet.index.has_duplicates:
+    print()
+    print("samples identifiers are not unique. Exiting...")
+    print()
+    sys.exit()
+
+# check all the fields are complete by looking at NaN's presence
+if sample_sheet.isnull().values.any():
+    print()
+    print("Not all the fields are complete in the sample sheet. Exiting...")
+    print()
+    sys.exit()
+
+
 # check there is only one analysis_id
 ANALYSES_IDS = list(set(sample_sheet.analysis_id.tolist()))
 if len(ANALYSES_IDS) > 1:
+    print()
     print(f"More than one 'analysis_id' in the sample sheet '{os.path.basename(config['sample_sheet'])}':")
     for id in ANALYSES_IDS:
         print(f"\t- {id}")
     print("Please run only one analysis each time. Exiting...")
+    print()
     sys.exit()
 else:
     SAMPLES=sample_sheet.index.tolist()
@@ -134,7 +153,7 @@ def gather_dtr(wildcards): # used
 
 def generate_plots(wildcards):
     analysis_id=ANALYSES_IDS[0]
-    if config["plot"]["generate_plots"]:
+    if config["genomes_plot"]["generate_plots"]:
         return f"results/{analysis_id}/7_ANI/.gggenomes_done"
     else:
         return f"results/{analysis_id}/crassus_results.tsv"
