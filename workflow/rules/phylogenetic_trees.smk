@@ -107,7 +107,7 @@ if config["phylogenies"]["tree_software"]["iqtree"]:
             "logs/{analysis_id}/trees/{marker}.log"
         shell:
             """
-            mkdir {params.dir}
+            mkdir -p {params.dir}
             iqtree -s {input} --prefix {params.prefix} -T AUTO --threads-max {threads} -B 1000 --mset LG --quiet
             cp {output.iqtree} {output.final_tree}
             """
