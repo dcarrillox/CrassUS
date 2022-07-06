@@ -1,5 +1,5 @@
 # Tabular 'sample sheet' file with columns 'analysis_id', 'sample_id' and 'fasta'
-sample_sheet: samplesheet_test.tsv #old/ancient_samplesheet.tsv
+sample_sheet: july_2022/ancient_samplesheet_july2022.tsv #old/ancient_samplesheet.tsv
 
 # Parameters for the phylogenies step
 phylogenies:
@@ -48,6 +48,6 @@ shared_proteins:
 # Parameters for the whole genome plots
 genomes_plot:
   # False if you don't want to generate such plots
-  generate_plots: True
+  generate_plots: False
   # Minimum alignment length to show in the plot
   aln_min_len: 200

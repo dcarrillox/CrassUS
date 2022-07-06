@@ -27,7 +27,7 @@ def main():
     os.makedirs(snakemake.output[0], exist_ok=True)
 
     # copy .faa files of best codings to the root folder
-    best_codings = [line.strip().split("\t") for line in open(snakemake.input[0]).readlines() if line.endswith("<--\n")]
+    best_codings = [line.strip().split("\t") for line in open(snakemake.input[0]).readlines() if line.endswith("True\n")]
     for coding in best_codings:
         raw_prefix = f"{snakemake.params.raw_dir}/{coding[0]}_tbl-{coding[1]}"
 

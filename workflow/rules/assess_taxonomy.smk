@@ -2,7 +2,8 @@ rule aggregate_signals:
     input:
         phylogenies = rules.parse_trees.output,
         shared_prot = "results/{analysis_id}/6_protein_clustering/shared_content_taxonomy.txt",
-        ani_cluster = "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt"
+        ani_cluster = "results/{analysis_id}/7_ANI/ani_genus_species_taxonomy.txt",
+        coding = "results/{analysis_id}/4_ORF/coding_summary.txt"
     output:
         "results/{analysis_id}/aggregated_signals.txt"
     conda:
@@ -13,7 +14,9 @@ rule aggregate_signals:
 rule final_table:
     input:
         rules.aggregate_signals.output,
-        dtr_blast_done = gather_dtr
+        dtr_blast_done = gather_dtr,
+        tables = "results/{analysis_id}/4_ORF/3_functional_annot_tables/.finished", # force genome tables to be made
+
     output:
         "results/{analysis_id}/crassus_results.tsv"
     params:

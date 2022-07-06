@@ -152,13 +152,18 @@ for genome in aggregated_df.index:
 
 # ------------------------
 # init the final DataFrame
-columns = ["crassus_id", "contig", "sample", "length", "len/taxa_len", "ref_taxa", "DTR",
-           "family", "subfamily", "genus", "species",
+columns = ["crassus_id", "contig", "sample", "length", "length/ref", "ref", "DTR",
+           "coding", "family", "subfamily", "genus", "species",
            "evidence_family", "evidence_genus", "notes", "discard"]
 final_df = pd.DataFrame(columns=columns)
 final_df["crassus_id"] = aggregated_df.index
 final_df.set_index("crassus_id", inplace=True)
 
+
+
+# add coding information
+for genome in aggregated_df.index:
+    final_df.loc[genome, "coding"] = aggregated_df.loc[genome, "coding"]
 
 # read tables with the contigs identifiers relation
 def parse_id_table(ids_table):
@@ -396,8 +401,8 @@ def assess_completeness(df, taxas_lengths, genome):
     if deepest != "unknown":
         proxy = round(df.loc[genome, "length"]/taxas_lengths[deepest], 3)
 
-        df.loc[genome, "len/taxa_len"] = proxy
-        df.loc[genome, "ref_taxa"] = deepest
+        df.loc[genome, "length/ref"] = proxy
+        df.loc[genome, "ref"] = deepest
 
 # -------------------------------------------------------------
 # Parse taxonomy. For each reference genus, store its subfamily

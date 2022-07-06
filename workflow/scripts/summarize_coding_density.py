@@ -76,18 +76,18 @@ def main():
         dens1, dens2 = float(sorted_codings[0][3]), float(sorted_codings[1][3])
         leng1, leng2 = float(sorted_codings[0][5]), float(sorted_codings[1][5])
         if dens1 - dens2 > 0.05 or leng1 - leng2 > 200:
-            sorted_codings[0].append("<--")
+            sorted_codings[0].append("True")
         else:
             for coding in sorted_codings:
                 if coding[1] == "11":
-                    coding.append("<--")
+                    coding.append("True")
         # sort by coding name
         sorted_codings = sorted(sorted_codings, key=lambda coding: coding[1])
         for coding in sorted_codings:
             to_write.append(coding)
 
     with open(snakemake.output[0], "w") as fout:
-        fout.write("contig\tcoding\tlength\tdensity\tn_prots\tmean_len\n")
+        fout.write("contig\tcoding\tlength\tdensity\tn_prots\tmean_len\tpick\n")
         for line in to_write:
             fout.write("\t".join(line) + "\n")
 

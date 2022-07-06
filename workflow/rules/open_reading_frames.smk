@@ -6,9 +6,9 @@ rule predict_ORF:
         "results/{analysis_id}/3_crass_contigs/{contig}.fasta",
     output:
         multiext("results/{analysis_id}/4_ORF/0_all_codings/{contig}_tbl-",
-                 "11.faa", "11.gff",
-                 "TGA.faa", "TGA.gff",
-                 "TAG.faa", "TAG.gff"
+                 "11.faa", "11.fna", "11.gff",
+                 "TGA.faa", "TGA.fna","TGA.gff",
+                 "TAG.faa", "TAG.fna","TAG.gff"
                 )
     threads: 1
     params:
@@ -28,9 +28,9 @@ rule predict_ORF:
             mode="-p meta"
         fi
 
-        {params.prodigal} ${{mode}} -f gff -a {output[0]} -o {output[1]} -i {input} &> {log.log} ;
-        {params.prodigal} ${{mode}} -TGA W -f gff -a {output[2]} -o {output[3]} -i {input} &> {log.tga_log} ;
-        {params.prodigal} ${{mode}} -TAG Q -f gff -a {output[4]} -o {output[5]} -i {input} &> {log.tag_log}
+        {params.prodigal} ${{mode}} -f gff -a {output[0]} -d {output[1]} -o {output[2]} -i {input} &> {log.log} ;
+        {params.prodigal} ${{mode}} -TGA W -f gff -a {output[3]} -d {output[4]} -o {output[5]} -i {input} &> {log.tga_log} ;
+        {params.prodigal} ${{mode}} -TAG Q -f gff -a {output[6]} -d {output[7]} -o {output[8]} -i {input} &> {log.tag_log}
         '''
 
 rule coding_density:

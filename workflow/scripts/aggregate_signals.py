@@ -7,6 +7,14 @@ import pandas as pd
 df = pd.read_csv(snakemake.input.phylogenies[0], header=0, sep="\t", index_col=0)
 
 
+# read coding prediction
+coding_df = pd.read_csv(snakemake.input.coding, header=0, sep="\t")
+coding_df = coding_df[coding_df["pick"] == True]
+coding_df.set_index("contig", inplace=True)
+for genome in coding_df.index:
+    df.loc[genome, "coding"] = coding_df.loc[genome, "coding"]
+
+
 # read shared_content
 shared_df = pd.read_csv(snakemake.input.shared_prot, header=0, sep="\t", index_col=0)
 for genome in shared_df.index:
