@@ -1,5 +1,10 @@
 # Tabular 'sample sheet' file with columns 'analysis_id', 'sample_id' and 'fasta'
-sample_sheet: 
+sample_sheet:
+
+
+# Minimum lenght (bp) for the input contigs to be considered for the analysis
+# deafult is 10000
+length_cutoff:
 
 # Parameters for the phylogenies step
 phylogenies:
