@@ -41,9 +41,6 @@ def get_markers_annot(genome, markers, df):
     subfam = list()
     genus  = list()
 
-    # if genome == "Baboon19_894_46906":
-    #     print(families)
-
     if families:
         # check family by markers
         if len(families) == 1:
@@ -98,17 +95,6 @@ def get_protshared_annot(genome, df):
 
             if value_shared >= genus_cutoff:
                 genera = df.loc[genome, "prot_most_similar_ref_genus"].split(",")
-        #     else:
-        #         genera = ["unknown"]
-        #
-        # else:
-        #     families = ["unknown"]
-        #     genera = ["unknown"]
-
-    # if genome == "Baboon19_140_109222":
-    #     print(genome)
-    #     print(families)
-    #     print(genera)
 
     return families, genera
 
@@ -135,11 +121,22 @@ def get_ani_annot(genome, df):
         else:
             genus = df.loc[genome, "ani_genus"]
 
+            # replace by ani_genus_cluster in case the cluster was annotated
+            # with a reference
+            if "genus__" not in genus:
+                genus = df.loc[genome, "ani_genus_cluster"]
+
+
         # Species
         if round(ani_qcov_value) >= 85 and round(ani_pid_value) >= 95:
             species = df.loc[genome, "species_most_similar_ref_genome"]
         else:
             species = df.loc[genome, "ani_species"]
+
+            # replace by ani_species_cluster in case the cluster was annotated
+            # with a reference
+            if "species__" not in species:
+                species = df.loc[genome, "ani_species_cluster"]
 
     return genus, species
 
@@ -191,7 +188,7 @@ for dtr_file in snakemake.input.dtr_blast_done:
     genome = os.path.basename(blast_file).replace(".dtr_blast", "")
     # check it is >20Kb
     genome_length = int(genome.split("_")[-1])
-    if genome_length >= 10000:
+    if genome_length >= int(snakemake.config["length_cutoff"]):
         lines = [line.strip().split("\t") for line in open(blast_file).readlines()]
         # discard self-hits
         lines = [line for line in lines if line[0] != line[1]]
@@ -234,17 +231,6 @@ def assess_family(contigs_signals, genome):
     marker = contigs_signals[genome]["phylogenies"]["family"]
     protshared = contigs_signals[genome]["shared_prots"]["family"]
 
-    # if genome == "Baboon19_708_52401":
-    #     print(genome)
-    #     print("marker:", marker)
-    #     print("prot:", protshared)
-
-    # one or none family were predicted by markers
-
-    # print(genome)
-    # print(marker)
-    # print(protshared)
-    # print()
 
     if len(marker) <= 1:
         # markers and prot_shared are identical
@@ -303,8 +289,6 @@ def assess_family(contigs_signals, genome):
     else:
         note = "multiple families in phylogenies"
 
-    # if genome == "Baboon19_1549_35692":
-    #     print(family)
 
     return family, family_evidence, note
 
@@ -333,19 +317,6 @@ def assess_genus(contigs_signals, genome):
     marker = contigs_signals[genome]["phylogenies"]["genus"]
     protshared = contigs_signals[genome]["shared_prots"]["genus"]
     ani = contigs_signals[genome]["ani"]["genus"]
-
-    # if genome == "Baboon19_140_109222":
-    #     print(genome)
-    #     print(marker)
-    #     print(protshared)
-    #     print(ani)
-
-    # print(genome)
-    # print(marker)
-    # print(protshared)
-    # print(ani)
-    # print()
-
 
     # check the genome got results by ANI
     if ani:
@@ -409,6 +380,8 @@ def assess_completeness(df, taxas_lengths, genome):
 lines = [line.strip().split("\t") for line in open(snakemake.params.taxonomy).readlines()[1:]]
 genus_subfamily = {line[3]:line[2] for line in lines}
 
+
+
 def assign_subfamily_sharedprots_ani(df, genus_subfamily, genome):
     genus = df.loc[genome, "genus"]
     subfamily = df.loc[genome, "subfamily"]
@@ -416,10 +389,6 @@ def assign_subfamily_sharedprots_ani(df, genus_subfamily, genome):
     if genus and "genus__" not in genus:
         if not subfamily or pd.isnull(subfamily):
             df.loc[genome, "subfamily"] = genus_subfamily[genus]
-
-
-
-
 
 
 def check_no_signals_genomes(final_df, genome):
@@ -443,14 +412,78 @@ def check_no_signals_genomes(final_df, genome):
 
         note = "no signals"
 
-
-    # check the genome has
-
-
-
     return discard, note
 
 
+
+# ----------------------------------
+# parse reference taxonomy to chains
+dfs = list()
+for rank in ["subfamily", "genus", "species"]:
+    df = pd.read_csv(snakemake.params.taxonomy, sep="\t", header=0)
+    df["target"] = df[rank]
+    if rank == "subfamily":
+        df.drop(["genus", "species"], axis=1, inplace=True)
+    if rank == "genus":
+        df.drop(["species"], axis=1, inplace=True)
+    df.drop("genome", axis=1, inplace=True)
+    dfs.append(df)
+
+taxonomy_chains = pd.concat(dfs)
+taxonomy_chains.set_index("target", inplace=True)
+taxonomy_chains.drop_duplicates(inplace=True)
+
+
+def check_taxonomy_concordance(final_df, genome, taxonomy_chains_df):
+    note = str()
+
+    species = final_df.loc[genome, "species"]
+    genus = final_df.loc[genome, "genus"]
+    subfamily = final_df.loc[genome, "subfamily"]
+    family = final_df.loc[genome, "family"]
+    deepest = str()
+
+    if species and "species__" not in species:
+        rank = "species"
+        deepest = final_df.loc[genome, "species"]
+
+    elif genus and "genus__" not in genus:
+        rank = "genus"
+        deepest = final_df.loc[genome, "genus"]
+
+    elif final_df.loc[genome, "subfamily"] not in ["unknown", ""]:
+        rank = "subfamily"
+        deepest = final_df.loc[genome, "subfamily"]
+
+    elif final_df.loc[genome, "family"] not in ["unknown", ""]:
+        rank = "family"
+        deepest = final_df.loc[genome, "species"]
+
+    else:
+        pass
+
+
+    if deepest:
+        # check from species chain
+        if rank == "species":
+            if final_df.loc[genome, "genus"] != taxonomy_chains_df.loc[deepest, "genus"] or \
+            final_df.loc[genome, "subfamily"] != taxonomy_chains_df.loc[deepest, "subfamily"] or \
+            final_df.loc[genome, "family"] != taxonomy_chains_df.loc[deepest, "family"]:
+                note = "Discordance in the taxonomy prediction"
+
+        # check from genus chain
+        if rank == "genus":
+            if final_df.loc[genome, "subfamily"] != taxonomy_chains_df.loc[deepest, "subfamily"] or \
+            final_df.loc[genome, "family"] != taxonomy_chains_df.loc[deepest, "family"]:
+                note = "Discordance in the taxonomy prediction"
+
+        # check from subfamily chain
+        if rank == "subfamily":
+            if final_df.loc[genome, "family"] != taxonomy_chains_df.loc[deepest, "family"]:
+                note = "Discordance in the taxonomy prediction"
+
+
+    return note
 
 
 
@@ -491,14 +524,19 @@ for genome in final_df.index:
     assess_completeness(final_df, taxas_lengths, genome)
 
 
-
-
-
     # check if there is any signal at all. Otherwise, mark the genome as discard=True
     discard, note = check_no_signals_genomes(final_df, genome)
     final_df.loc[genome, "discard"] = discard
     if note:
         notes.append(note)
+
+
+
+    # if the genome was not discarded, check taxonomy concordance
+    if not final_df.loc[genome, "discard"]:
+        note = check_taxonomy_concordance(final_df, genome, taxonomy_chains)
+        if note:
+            notes.append(note)
 
 
     # write notes if necessary
