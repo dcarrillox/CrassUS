@@ -1,14 +1,7 @@
-old/
 resources/CrassUS_db/
-resources/dev
-database_update/
-crassus_dependencies/
 docs/
-july_2022
 logs/
 results/
-writting/
-*ipynb
 .snakemake
 .cache/
 .ipynb_checkpoints/
