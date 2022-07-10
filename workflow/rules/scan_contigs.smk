@@ -12,7 +12,7 @@ rule translate_six_frames:
         size=$(stat --printf="%s" {input})
         if [[ $size -eq 0 ]]
         then
-            touch {output}
+            echo ">empty_mock\nEMPTYMOCK" > {output}
         else
             transeq -frame 6 -table 11 -clean -sequence {input} -outseq {output} &> {log}
         fi
