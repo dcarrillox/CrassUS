@@ -231,7 +231,6 @@ def assess_family(contigs_signals, genome):
     marker = contigs_signals[genome]["phylogenies"]["family"]
     protshared = contigs_signals[genome]["shared_prots"]["family"]
 
-
     if len(marker) <= 1:
         # markers and prot_shared are identical
         if marker == protshared:
@@ -284,11 +283,14 @@ def assess_family(contigs_signals, genome):
                         family = marker[0]
                         family_evidence = "phylogenies, shared_prots"
                         note = "multiple families by shared prots"
+                    else:
+                        family = ""
+                        family_evidence = "phylogenies, shared_prots"
+                        note = "Discordant families"
 
 
     else:
         note = "multiple families in phylogenies"
-
 
     return family, family_evidence, note
 
@@ -395,22 +397,23 @@ def check_no_signals_genomes(final_df, genome):
 
     note = str()
 
-    # check if the genome has any assignment at family and subfamily levels
-    discard = True
-    check_columns = ["family", "subfamily"]
-    for column in check_columns:
-        value = final_df.loc[genome, column]
-        if value and not pd.isnull(value):
-            discard = False
+    # check if the genome has any assignment at family rank
+    discard = False
+    value = final_df.loc[genome, "family"]
+    if not value or pd.isnull(value) or value == "":
+        discard = True
 
-    if discard:
-        # remove genus & species assignments
+        # remove columns
+        final_df.loc[genome, "length/ref"] = ""
+        final_df.loc[genome, "ref"] = ""
+        final_df.loc[genome, "subfamily"] = ""
         final_df.loc[genome, "genus"] = ""
         final_df.loc[genome, "species"] = ""
         final_df.loc[genome, "evidence_genus"] = ""
 
-
-        note = "no signals"
+        notes = final_df.loc[genome, "notes"]
+        if notes == "" or pd.isnull(notes):
+            note = "no signals meeting cutoffs"
 
     return discard, note
 
@@ -486,22 +489,29 @@ def check_taxonomy_concordance(final_df, genome, taxonomy_chains_df):
     return note
 
 
+def add_note(final_df, genome, note):
+    notes = final_df.loc[genome, "notes"]
+    if notes == "" or pd.isnull(notes):
+        final_df.loc[genome, "notes"] = note
+    else:
+        final_df.loc[genome, "notes"] = notes + f"; {note}"
+
 
 for genome in final_df.index:
-    notes = list()
+    #notes = list()
 
     # Family
     family, family_evidence, note = assess_family(contigs_signals, genome)
     final_df.loc[genome, "family"] = family
     final_df.loc[genome, "evidence_family"] = family_evidence
     if note:
-        notes.append(note)
+        add_note(final_df, genome, note)
 
     # Subfamily
     subfamily, note = assess_subfamily(contigs_signals, genome)
     final_df.loc[genome, "subfamily"] = subfamily
     if note:
-        notes.append(note)
+        add_note(final_df, genome, note)
 
     # Genus
     genus, genus_evidence = assess_genus(contigs_signals, genome)
@@ -512,7 +522,7 @@ for genome in final_df.index:
     species, note = assess_species(contigs_signals, genome)
     final_df.loc[genome, "species"] = species
     if note:
-        notes.append(note)
+        add_note(final_df, genome, note)
 
 
     # for genomes classified only by shared prots and ani, assign the subfamily
@@ -528,20 +538,16 @@ for genome in final_df.index:
     discard, note = check_no_signals_genomes(final_df, genome)
     final_df.loc[genome, "discard"] = discard
     if note:
-        notes.append(note)
-
+        add_note(final_df, genome, note)
 
 
     # if the genome was not discarded, check taxonomy concordance
     if not final_df.loc[genome, "discard"]:
         note = check_taxonomy_concordance(final_df, genome, taxonomy_chains)
         if note:
-            notes.append(note)
+            add_note(final_df, genome, note)
 
 
-    # write notes if necessary
-    if notes:
-        final_df.loc[genome, "notes"] = "; ".join(notes)
 
 
 # Write to final output file
