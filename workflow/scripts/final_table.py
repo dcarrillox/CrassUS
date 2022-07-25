@@ -371,7 +371,7 @@ def assess_completeness(df, taxas_lengths, genome):
         deepest = "unknown"
 
     # calculate the completeness proxy
-    if deepest != "unknown":
+    if deepest not in  ["unknown", "outgroup"]:
         proxy = round(df.loc[genome, "length"]/taxas_lengths[deepest], 3)
 
         df.loc[genome, "length/ref"] = proxy
@@ -466,7 +466,7 @@ def check_taxonomy_concordance(final_df, genome, taxonomy_chains_df):
         pass
 
 
-    if deepest:
+    if deepest and deepest not in  ["unknown", "outgroup]":
         # check from species chain
         if rank == "species":
             if final_df.loc[genome, "genus"] != taxonomy_chains_df.loc[deepest, "genus"] or \
