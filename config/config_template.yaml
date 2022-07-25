@@ -4,7 +4,7 @@ sample_sheet:
 
 # Minimum lenght (bp) for the input contigs to be considered for the analysis
 # deafult is 10000
-length_cutoff:
+length_cutoff: 10000
 
 # Parameters for the phylogenies step
 phylogenies:
@@ -38,14 +38,12 @@ phylogenies:
     threads: 12
 
 
-
-
 # Parameters for the shared proteins assessment
 shared_proteins:
   # Cutoffs for the delineation of family and genus ranks. These are based on the
   # analysis of the reference set.
   taxa_cutoffs:
-    family: 20
+    family: 17
     genus: 70
 
 
