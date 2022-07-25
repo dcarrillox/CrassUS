@@ -466,7 +466,7 @@ def check_taxonomy_concordance(final_df, genome, taxonomy_chains_df):
         pass
 
 
-    if deepest and deepest not in  ["unknown", "outgroup]":
+    if deepest and deepest not in  ["unknown", "outgroup"]:
         # check from species chain
         if rank == "species":
             if final_df.loc[genome, "genus"] != taxonomy_chains_df.loc[deepest, "genus"] or \
