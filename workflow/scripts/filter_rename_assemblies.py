@@ -17,7 +17,7 @@ to_write_table = list()
 n = 1
 for id, record in sorted_ids_records.items():
     to_add_table = [record.id]
-    if len(record.seq) >= 5000:
+    if len(record.seq) >= int(snakemake.config["length_cutoff"]):
         rehead = f"{snakemake.wildcards.sample}_{n}_{len(record.seq)}"
         to_add_table.append(rehead)
         record.id = rehead

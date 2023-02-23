@@ -34,6 +34,8 @@ for genome in aniclust_df.index:
     pid = aniclust_df.loc[genome, "pid"]
     df.loc[genome, "ani_pid"] = pid if not pd.isnull(pid) else 0
     df.loc[genome, "ani_genus"] = aniclust_df.loc[genome, "genus_names"]
+    df.loc[genome, "ani_genus_cluster"] = aniclust_df.loc[genome, "genus_cluster"]
     df.loc[genome, "ani_species"] = aniclust_df.loc[genome, "species_names"]
+    df.loc[genome, "ani_species_cluster"] = aniclust_df.loc[genome, "species_cluster"]
 
 df.to_csv(snakemake.output[0], sep="\t", index=True)

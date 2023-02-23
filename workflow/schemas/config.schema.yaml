@@ -7,6 +7,11 @@ properties:
     type: string
     description: path to the sample sheet file
 
+  length_cutoff:
+    type: integer
+    default: 10000
+
+
   phylogenies:
     type: object
     properties:
