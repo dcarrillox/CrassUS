@@ -8,3 +8,6 @@ results/
 .~lock.*
 .Rhistory
 .idea
+config/config.*
+*.tsv
+*.txt
