@@ -118,15 +118,15 @@ rule ani_assign_taxonomy:
     script:
         "../scripts/get_taxonomy_ani.py"
 
-rule install_gggenomes:
-    output:
-        done = "resources/CrassUS_db/.gggenomes_install_done"
-    conda:
-        "../envs/plot_genomes.yaml"
-    log:
-        "logs/install_gggenomes.log"
-    shell:
-        "Rscript workflow/scripts/install_gggenomes.R &> {log}"
+# rule install_gggenomes:
+#     output:
+#         done = "resources/CrassUS_db/.gggenomes_install_done"
+#     conda:
+#         "../envs/plot_genomes.yaml"
+#     log:
+#         "logs/install_gggenomes.log"
+#     shell:
+#         "Rscript workflow/scripts/install_gggenomes.R &> {log}"
 
 checkpoint prepare_gggenomes_data:
     input:
@@ -146,24 +146,25 @@ checkpoint prepare_gggenomes_data:
 
 rule plot_gggenomes:
     input:
-        rules.install_gggenomes.output.done,
-        blast = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.blast",
-        annot = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.annot",
-        labels = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.labels",
+        gather_gggdata
+        # expand("results/{analysis_id}/7_ANI/2_plot/{gggdata}.blast", gggdata=gggdata)
+        # rules.install_gggenomes.output.done,
+        # blast = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.blast",
+        # annot = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.annot",
+        # labels = "results/{analysis_id}/7_ANI/2_plot/{gggdata}.labels",
     output:
-        "results/{analysis_id}/7_ANI/2_plot/{gggdata}.png"
+        "results/{analysis_id}/7_ANI/alignment_plots.pdf"
     params:
-        contigs_tables_dir = "results/{analysis_id}/4_ORF/3_functional_annot_tables/",
-        reference_tables_dir = "resources/CrassUS_db/reference_genomes/tables"
-    conda:
-        "../envs/plot_genomes.yaml"
-    script:
-        "../scripts/plot_gggenomes.R"
-
-rule gather_gggenomes_plots:
-    input:
-        gather_gggenomes
-    output:
-        "results/{analysis_id}/7_ANI/.gggenomes_done"
+        script="workflow/scripts/plot_gggenomes.R"
+    singularity:
+        "docker://dcarrillouu/plot_genomes:0.2"
     shell:
-        "touch {output}"
+        "Rscript {params.script} {output} {input}"
+
+# rule gather_gggenomes_plots:
+#     input:
+#         gather_gggenomes
+#     output:
+#         "results/{analysis_id}/7_ANI/.gggenomes_done"
+#     shell:
+#         "touch {output}"

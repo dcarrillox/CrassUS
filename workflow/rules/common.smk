@@ -160,13 +160,13 @@ def gather_dtr(wildcards): # used
 def generate_plots(wildcards):
     analysis_id=ANALYSES_IDS[0]
     if config["genomes_plot"]["generate_plots"]:
-        return f"results/{analysis_id}/7_ANI/.gggenomes_done"
+        return f"results/{analysis_id}/7_ANI/alignment_plots.pdf"
     else:
         return f"results/{analysis_id}/crassus_results.tsv"
 
-def gather_gggenomes(wildcards):
+def gather_gggdata(wildcards):
     checkpoint_output = checkpoints.prepare_gggenomes_data.get(**wildcards).output[0]
-    gggenomes = expand("results/{analysis_id}/7_ANI/2_plot/{gggdata}.png",
+    gggenomes = expand("results/{analysis_id}/7_ANI/2_plot/{gggdata}.blast",
                     analysis_id=ANALYSES_IDS[0],
                     gggdata=glob_wildcards(f"{checkpoint_output}/{{gggdata}}.blast").gggdata,
                     )

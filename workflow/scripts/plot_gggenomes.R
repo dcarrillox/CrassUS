@@ -1,11 +1,14 @@
+args = commandArgs(trailingOnly=TRUE)
+
 options(warn=-1)
 suppressPackageStartupMessages(library(gggenomes, quietly = TRUE, warn.conflicts = FALSE))
 suppressPackageStartupMessages(library(dplyr, quietly = TRUE, warn.conflicts = FALSE))
 suppressPackageStartupMessages(library(ggnewscale, quietly = TRUE, warn.conflicts = FALSE))
 suppressPackageStartupMessages(library(RColorBrewer, quietly = TRUE, warn.conflicts = FALSE))
+library("stringr")
 
 
-plot_genomes <- function(blast_file, annot_file, labels_file, output_file) {
+plot_genomes <- function(blast_file, annot_file, labels_file) {
   blast = read.csv(blast_file, sep = '\t', header = T)
 
   # check how many genomes have to be shown
@@ -63,7 +66,7 @@ plot_genomes <- function(blast_file, annot_file, labels_file, output_file) {
   genomes["label"] <- labels_df$label
 
   p <- gggenomes(seqs=genomes, genes=genes, links=links) +
-    geom_seq_label(aes(label=label)) +
+    geom_seq_label(aes(label=label), size=6) +
     geom_seq() +
     geom_link(aes(fill=perc_id), size=0.02) +
     scale_fill_gradient2(low="red",
@@ -87,10 +90,8 @@ plot_genomes <- function(blast_file, annot_file, labels_file, output_file) {
                       na.value="white",
                       name="Function")
     #scale_fill_brewer("Genes", palette="Dark2", na.value="gray98")
+  print(p)
 
-
-
-  ggsave(output_file, plot=p, width=10, height=5)
 
 
 }
@@ -98,13 +99,13 @@ plot_genomes <- function(blast_file, annot_file, labels_file, output_file) {
 
 
 ### main ###
+pdf(args[1], width = 15,  height = 10)
+for (i in 2:length(args)) {
+  blast_file = args[i]
+  annot_file = str_replace(blast_file, ".blast", ".annot")
+  labels_file = str_replace(blast_file, ".blast", ".labels")
+  plot_genomes(blast_file, annot_file, labels_file)
+}
 
-blast_file  <- snakemake@input[['blast']]
-annot_file  <- snakemake@input[['annot']]
-labels_file <- snakemake@input[['labels']]
-output_file <- snakemake@output[[1]]
+dev.off()
 
-
-# print("here ->", blast_file, annot_file, output_file)
-
-plot_genomes(blast_file, annot_file, labels_file, output_file)
