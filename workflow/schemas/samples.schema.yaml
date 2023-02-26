@@ -1,0 +1,17 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+description: an entry in the sample sheet
+properties:
+  analysis_id:
+    type: string
+    description: name of the analysis
+  sample_id:
+    type: string
+    description: name of the sample
+  fasta:
+    type: string
+    description: path to the FASTA file with contigs
+
+required:
+  - analysis_id
+  - sample_id
+  - fasta

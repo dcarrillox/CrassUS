@@ -1,0 +1,56 @@
+# Tabular 'sample sheet' file with columns 'analysis_id', 'sample_id' and 'fasta'
+sample_sheet:
+
+
+# Minimum lenght (bp) for the input contigs to be considered for the analysis
+# deafult is 10000
+length_cutoff: 10000
+
+# Parameters for the phylogenies step
+phylogenies:
+  # Marker genes to include in the analysis. We recommend including all three
+  # unless there is a strong reason for not doing so.
+  markers:
+    TerL: True
+    MCP: True
+    portal: True
+  # Coverage of the marker genes by the reference profiles is assessed before the
+  # MSA step. Genes with covered fraction less than 'protein_cov', or covering
+  # the marker profile less than 'marker_cov' are not included in the MSA and
+  # phylogenies.
+  marker_cov: 0.5
+  protein_cov: 0.5
+  # MAFFT mode for the Multiple Sequence Alignment of the marker genes TerL, MCP
+  # and portal. Default mode is FFT-NS-i with a maximum of 1,000 refinement
+  # iterations. Set 'einsi' as True if you want to use the E-INS-i method, more
+  # accurate but slower. Not recommended for more than 1k sequences.
+  # Independently of the mode stated here and for the sake of execution time,
+  # the --auto mode is used if there are more than 2K sequences to align.
+  msa_software:
+    einsi: False
+    threads: 12
+  # By default phylogenies are built using FastTree, which provides good results
+  # and is fast even with thousands of sequences. Set to True to run IQ-Tree for
+  # a more accurate but slower inference. Using ModelFinder, it will assess which
+  # substitution model under the LG models better explains your data.
+  tree_software:
+    iqtree: False
+    threads: 12
+
+
+# Parameters for the shared proteins assessment
+shared_proteins:
+  # Cutoffs for the delineation of family and genus ranks. These are based on the
+  # analysis of the reference set.
+  taxa_cutoffs:
+    family: 19
+    genus: 70
+
+
+
+# Parameters for the whole genome plots
+genomes_plot:
+  # False if you don't want to generate such plots
+  generate_plots: True
+  # Minimum alignment length to show in the plot
+  aln_min_len: 200
