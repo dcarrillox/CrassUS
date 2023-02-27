@@ -1,5 +1,4 @@
 resources/CrassUS_db/
-docs/
 logs/
 results/
 .snakemake
